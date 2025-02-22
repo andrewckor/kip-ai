@@ -8,7 +8,7 @@
   </head>
 
   <body>
-    <div id="site-container">
+    <div id="canvas-container">
       <nav style="margin-bottom: 30px">
         <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 20px">
           <li>
@@ -193,6 +193,19 @@
       </div>
     </div>
 
+    <div id="chat-container">
+      <div id="chat-messages"></div>
+      <div id="chat-input-container">
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Type your message..."
+          value="How do I send my resume?"
+        />
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+
     <script>
       // Navigation handling
       document.addEventListener('DOMContentLoaded', function () {
@@ -203,13 +216,13 @@
         document.querySelector('#about-section').classList.add('active');
         document.querySelector('[data-section="about"]').classList.add('active');
 
-        navLinks.forEach(link => {
-          link.addEventListener('click', e => {
+        navLinks.forEach((link) => {
+          link.addEventListener('click', (e) => {
             e.preventDefault();
 
             // Remove active class from all links and sections
-            navLinks.forEach(l => l.classList.remove('active'));
-            sections.forEach(s => s.classList.remove('active'));
+            navLinks.forEach((l) => l.classList.remove('active'));
+            sections.forEach((s) => s.classList.remove('active'));
 
             // Add active class to clicked link and corresponding section
             const sectionId = link.getAttribute('data-section');
@@ -217,11 +230,8 @@
             document.querySelector(`#${sectionId}-section`).classList.add('active');
           });
         });
-
-        // Initialize chat interface
-        initChat();
       });
     </script>
-    <script type="module" src="kip.js"></script>
+    <script type="module" src="app.js"></script>
   </body>
 </html>
