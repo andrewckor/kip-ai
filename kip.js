@@ -189,42 +189,34 @@ const CURSOR_IMAGE = `<svg
 // Create and append chat container
 const createChatContainer = () => {
   const chatContainer = document.createElement('div');
-  chatContainer.id = 'chat-container';
+  chatContainer.innerHTML = `
+    <div id="chat-container">
+      <div id="chat-messages"></div>
+      <div id="chat-input-container">
+        <input 
+          type="text"
+          id="chat-input"
+          placeholder="Type your message..."
+          value="How do I send my resume?"
+        />
+        <button id="send-button">Send</button>
+      </div>
+    </div>
+  `;
 
-  const chatMessages = document.createElement('div');
-  chatMessages.id = 'chat-messages';
-
-  const chatInputContainer = document.createElement('div');
-  chatInputContainer.id = 'chat-input-container';
-
-  const chatInput = document.createElement('input');
-  chatInput.type = 'text';
-  chatInput.id = 'chat-input';
-  chatInput.placeholder = 'Type your message...';
-  chatInput.value = 'How do I send my resume?';
-
-  const sendButton = document.createElement('button');
-  sendButton.id = 'send-button';
-  sendButton.textContent = 'Send';
-
-  chatInputContainer.appendChild(chatInput);
-  chatInputContainer.appendChild(sendButton);
-  chatContainer.appendChild(chatMessages);
-  chatContainer.appendChild(chatInputContainer);
-
-  document.body.appendChild(chatContainer);
+  document.body.appendChild(chatContainer.firstElementChild);
 
   // Store references to chat elements
   chatElements = {
-    container: chatContainer,
-    messages: chatMessages,
-    input: chatInput,
-    sendButton: sendButton,
+    container: document.getElementById('chat-container'),
+    messages: document.getElementById('chat-messages'),
+    input: document.getElementById('chat-input'),
+    sendButton: document.getElementById('send-button'),
   };
 
   // Set up event listeners after elements are in the DOM
-  sendButton.addEventListener('click', handleSendMessage);
-  chatInput.addEventListener('keypress', e => {
+  chatElements.sendButton.addEventListener('click', handleSendMessage);
+  chatElements.input.addEventListener('keypress', e => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
