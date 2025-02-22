@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LuxuryHomes - Premium Real Estate</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="header">
+      <nav class="nav-container">
+        <a href="#" class="logo">Luxury<span>Homes</span></a>
+        <ul class="nav-menu">
+          <li><a href="#properties" class="nav-link">Properties</a></li>
+          <li><a href="#featured" class="nav-link">Featured</a></li>
+          <li><a href="#agents" class="nav-link">Our Agents</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Find Your Dream Home</h1>
+        <p>Discover luxury properties in prime locations</p>
+      </div>
+    </section>
+
+    <div class="search-container">
+      <form class="search-form">
+        <div class="form-group">
+          <label for="location">Location</label>
+          <input type="text" id="location" placeholder="Enter city or zip code" />
+        </div>
+        <div class="form-group">
+          <label for="property-type">Property Type</label>
+          <select id="property-type">
+            <option value="">Select type</option>
+            <option value="house">House</option>
+            <option value="apartment">Apartment</option>
+            <option value="villa">Villa</option>
+            <option value="penthouse">Penthouse</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="price-range">Price Range</label>
+          <select id="price-range">
+            <option value="">Select range</option>
+            <option value="0-500000">$0 - $500,000</option>
+            <option value="500000-1000000">$500,000 - $1M</option>
+            <option value="1000000-2000000">$1M - $2M</option>
+            <option value="2000000+">$2M+</option>
+          </select>
+        </div>
+        <button type="submit" class="btn">Search Properties</button>
+      </form>
+    </div>
+
+    <section id="featured" class="section">
+      <div class="section-title">
+        <h2>Featured Properties</h2>
+        <p>Handpicked premium properties for our distinguished clients</p>
+      </div>
+      <div class="properties-grid">
+        <div class="property-card">
+          <div class="property-image">
+            <img
+              src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750"
+              alt="Luxury Villa"
+            />
+            <span class="property-tag">For Sale</span>
+          </div>
+          <div class="property-content">
+            <h3 class="property-title">Modern Luxury Villa</h3>
+            <div class="property-price">$2,500,000</div>
+            <div class="property-features">
+              <span class="feature">5 Beds</span>
+              <span class="feature">6 Baths</span>
+              <span class="feature">6,200 Sq Ft</span>
+            </div>
+            <a href="#" class="btn">View Details</a>
+          </div>
+        </div>
+        <div class="property-card">
+          <div class="property-image">
+            <img
+              src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9"
+              alt="Waterfront Home"
+            />
+            <span class="property-tag">For Sale</span>
+          </div>
+          <div class="property-content">
+            <h3 class="property-title">Waterfront Estate</h3>
+            <div class="property-price">$4,750,000</div>
+            <div class="property-features">
+              <span class="feature">6 Beds</span>
+              <span class="feature">8 Baths</span>
+              <span class="feature">8,500 Sq Ft</span>
+            </div>
+            <a href="#" class="btn">View Details</a>
+          </div>
+        </div>
+        <div class="property-card">
+          <div class="property-image">
+            <img
+              src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c"
+              alt="City Penthouse"
+            />
+            <span class="property-tag">For Sale</span>
+          </div>
+          <div class="property-content">
+            <h3 class="property-title">Downtown Penthouse</h3>
+            <div class="property-price">$3,200,000</div>
+            <div class="property-features">
+              <span class="feature">4 Beds</span>
+              <span class="feature">4.5 Baths</span>
+              <span class="feature">4,800 Sq Ft</span>
+            </div>
+            <a href="#" class="btn">View Details</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="agents" class="section">
+      <div class="section-title">
+        <h2>Meet Our Agents</h2>
+        <p>Expert real estate professionals at your service</p>
+      </div>
+      <div class="agents-grid">
+        <div class="agent-card">
+          <div class="agent-image">
+            <img
+              src="https://images.unsplash.com/photo-1560250097-0b93528c311a"
+              alt="James Wilson"
+            />
+          </div>
+          <div class="agent-info">
+            <h3>James Wilson</h3>
+            <p>Luxury Property Specialist</p>
+            <p>15+ years experience</p>
+            <a href="#" class="btn">Contact Agent</a>
+          </div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-image">
+            <img
+              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2"
+              alt="Sarah Thompson"
+            />
+          </div>
+          <div class="agent-info">
+            <h3>Sarah Thompson</h3>
+            <p>Senior Real Estate Agent</p>
+            <p>12+ years experience</p>
+            <a href="#" class="btn">Contact Agent</a>
+          </div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-image">
+            <img
+              src="https://images.unsplash.com/photo-1556157382-97eda2d62296"
+              alt="Michael Brown"
+            />
+          </div>
+          <div class="agent-info">
+            <h3>Michael Brown</h3>
+            <p>International Property Consultant</p>
+            <p>10+ years experience</p>
+            <a href="#" class="btn">Contact Agent</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3>LuxuryHomes</h3>
+          <p>123 Luxury Avenue</p>
+          <p>Beverly Hills, CA 90210</p>
+          <p>Phone: (310) 555-0123</p>
+          <p>Email: info@luxuryhomes.com</p>
+        </div>
+        <div class="footer-section">
+          <h3>Quick Links</h3>
+          <p><a href="#properties" class="social-link">Properties</a></p>
+          <p><a href="#featured" class="social-link">Featured Listings</a></p>
+          <p><a href="#agents" class="social-link">Our Agents</a></p>
+          <p><a href="#about" class="social-link">About Us</a></p>
+        </div>
+        <div class="footer-section">
+          <h3>Follow Us</h3>
+          <div class="social-links">
+            <a href="#" class="social-link">Facebook</a>
+            <a href="#" class="social-link">Instagram</a>
+            <a href="#" class="social-link">LinkedIn</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="../../kip.js"></script>
+  </body>
+</html>

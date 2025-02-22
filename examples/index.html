@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KIP.js Example Websites</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #2563eb;
+        --secondary-color: #3b82f6;
+        --text-dark: #1e293b;
+        --text-light: #64748b;
+        --bg-light: #f8fafc;
+        --white: #ffffff;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --radius: 12px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        line-height: 1.6;
+        color: var(--text-dark);
+        background-color: var(--bg-light);
+      }
+
+      .header {
+        background-color: var(--white);
+        padding: 2rem 0;
+        box-shadow: var(--shadow);
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .header p {
+        color: var(--text-light);
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 4rem auto;
+        padding: 0 2rem;
+      }
+
+      .examples-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+      }
+
+      .example-card {
+        background: var(--white);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s ease;
+      }
+
+      .example-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .example-image {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .example-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .example-content {
+        padding: 1.5rem;
+      }
+
+      .example-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-dark);
+      }
+
+      .example-description {
+        color: var(--text-light);
+        margin-bottom: 1.5rem;
+      }
+
+      .example-link {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background-color: var(--primary-color);
+        color: var(--white);
+        text-decoration: none;
+        border-radius: var(--radius);
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+      }
+
+      .example-link:hover {
+        background-color: var(--secondary-color);
+      }
+
+      footer {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-light);
+        margin-top: 4rem;
+      }
+
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 2rem;
+        }
+        .container {
+          margin: 2rem auto;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="header">
+      <h1>KIP.js Example Websites</h1>
+      <p>Explore our collection of beautifully designed example websites built with KIP.js</p>
+    </header>
+
+    <div class="container">
+      <div class="examples-grid">
+        <div class="example-card">
+          <div class="example-image">
+            <img
+              src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4"
+              alt="Restaurant Website"
+            />
+          </div>
+          <div class="example-content">
+            <h2 class="example-title">La Maison Restaurant</h2>
+            <p class="example-description">
+              An elegant fine dining restaurant website featuring a sophisticated design, menu
+              showcase, and reservation system.
+            </p>
+            <a href="restaurant/index.html" class="example-link">View Example</a>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-image">
+            <img
+              src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48"
+              alt="Fitness Website"
+            />
+          </div>
+          <div class="example-content">
+            <h2 class="example-title">PowerFit Studio</h2>
+            <p class="example-description">
+              A dynamic fitness studio website with class schedules, trainer profiles, and
+              membership options.
+            </p>
+            <a href="fitness/index.html" class="example-link">View Example</a>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-image">
+            <img
+              src="https://images.unsplash.com/photo-1560518883-ce09059eeffa"
+              alt="Real Estate Website"
+            />
+          </div>
+          <div class="example-content">
+            <h2 class="example-title">LuxuryHomes Real Estate</h2>
+            <p class="example-description">
+              A premium real estate website showcasing luxury properties with advanced search
+              functionality.
+            </p>
+            <a href="realestate/index.html" class="example-link">View Example</a>
+          </div>
+        </div>
+
+        <div class="example-card">
+          <div class="example-image">
+            <img
+              src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0"
+              alt="Jobs Website"
+            />
+          </div>
+          <div class="example-content">
+            <h2 class="example-title">TechVision Careers</h2>
+            <p class="example-description">
+              A modern job board and careers website for a technology company with job listings and
+              application system.
+            </p>
+            <a href="jobs/index.html" class="example-link">View Example</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Built with KIP.js - A modern JavaScript framework for building beautiful websites</p>
+    </footer>
+
+    <script type="module" src="../kip.js"></script>
+  </body>
+</html>

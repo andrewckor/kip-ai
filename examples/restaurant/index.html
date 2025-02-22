@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>La Maison - Fine Dining Restaurant</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <header class="header">
+      <nav class="nav-container">
+        <a href="#" class="logo">La Maison</a>
+        <div class="nav-menu">
+          <a href="#menu" class="nav-link">Menu</a>
+          <a href="#about" class="nav-link">About</a>
+          <a href="#reservations" class="nav-link">Reservations</a>
+          <a href="#contact" class="nav-link">Contact</a>
+        </div>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-content">
+        <h1>La Maison</h1>
+        <p>Experience the finest French cuisine in an elegant atmosphere</p>
+        <a href="#reservations" class="btn">Make a Reservation</a>
+      </div>
+    </section>
+
+    <section id="menu" class="section">
+      <h2>Our Menu</h2>
+      <div class="menu-grid">
+        <div class="menu-item">
+          <img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327" alt="Appetizer" />
+          <h3>Appetizers</h3>
+          <p>Discover our selection of carefully crafted starters</p>
+          <span class="price">From $12</span>
+        </div>
+        <div class="menu-item">
+          <img
+            src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601"
+            alt="Main Course"
+          />
+          <h3>Main Courses</h3>
+          <p>Exquisite dishes prepared with the finest ingredients</p>
+          <span class="price">From $28</span>
+        </div>
+        <div class="menu-item">
+          <img src="https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc" alt="Dessert" />
+          <h3>Desserts</h3>
+          <p>Indulge in our heavenly dessert selection</p>
+          <span class="price">From $10</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <h2>About Us</h2>
+      <p>
+        La Maison brings the essence of French culinary excellence to your table. Our award-winning
+        chefs create unforgettable dining experiences using the finest seasonal ingredients.
+      </p>
+    </section>
+
+    <section id="reservations" class="section">
+      <h2>Make a Reservation</h2>
+      <form class="reservation-form">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" id="date" required />
+        </div>
+        <div class="form-group">
+          <label for="time">Time</label>
+          <select id="time" required>
+            <option value="">Select time</option>
+            <option value="18:00">6:00 PM</option>
+            <option value="19:00">7:00 PM</option>
+            <option value="20:00">8:00 PM</option>
+            <option value="21:00">9:00 PM</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="guests">Number of Guests</label>
+          <select id="guests" required>
+            <option value="">Select number of guests</option>
+            <option value="1">1 Person</option>
+            <option value="2">2 People</option>
+            <option value="3">3 People</option>
+            <option value="4">4 People</option>
+            <option value="5">5+ People</option>
+          </select>
+        </div>
+        <button type="submit" class="btn">Reserve Table</button>
+      </form>
+    </section>
+
+    <footer>
+      <div class="section">
+        <h3>Contact Us</h3>
+        <p>123 Gourmet Street, Culinary District</p>
+        <p>Phone: (555) 123-4567</p>
+        <p>Email: info@lamaison.com</p>
+        <div class="social-links">
+          <a href="#" class="social-link">Facebook</a>
+          <a href="#" class="social-link">Instagram</a>
+          <a href="#" class="social-link">Twitter</a>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="../../kip.js"></script>
+  </body>
+</html>
