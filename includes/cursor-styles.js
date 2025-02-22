@@ -3,7 +3,7 @@ export const cursorStyles = {
     width: 32px;
     height: 32px;
     color: #000;
-    position: fixed;
+    position: absolute;
     animation: floatAnimation 3s ease-in-out infinite;
     pointer-events: none;
   `,
