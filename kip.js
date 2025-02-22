@@ -2,6 +2,34 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import html2canvas from 'html2canvas';
 import { config } from './config.js';
 
+// Create chat interface dynamically
+function createChatInterface() {
+  const chatContainer = document.createElement('div');
+  chatContainer.id = 'chat-container';
+
+  const chatMessages = document.createElement('div');
+  chatMessages.id = 'chat-messages';
+
+  const chatInputContainer = document.createElement('div');
+  chatInputContainer.id = 'chat-input-container';
+
+  const chatInput = document.createElement('input');
+  chatInput.type = 'text';
+  chatInput.id = 'chat-input';
+  chatInput.placeholder = 'Type your message...';
+
+  const sendButton = document.createElement('button');
+  sendButton.id = 'send-button';
+  sendButton.textContent = 'Send';
+
+  chatInputContainer.appendChild(chatInput);
+  chatInputContainer.appendChild(sendButton);
+  chatContainer.appendChild(chatMessages);
+  chatContainer.appendChild(chatInputContainer);
+
+  document.body.appendChild(chatContainer);
+}
+
 // Define available functions for Gemini
 const functionDefinitions = [
   {
@@ -195,6 +223,9 @@ let chatHistory = [];
 
 async function initChat() {
   try {
+    // Create the chat interface first
+    createChatInterface();
+
     chat = model.startChat({
       history: [
         {
@@ -218,7 +249,7 @@ async function initChat() {
                 TOOLS:
                 ${functionDefinitions
                   .map(
-                    (fn) => `
+                    fn => `
                 ${fn.name}:
                 - Description: ${fn.description}
                 - Required parameters: ${fn.parameters.required.join(', ')}
@@ -340,7 +371,7 @@ async function handleAIResponse(response) {
     }
 
     // Then execute all function calls in sequence
-    const functionCalls = parts.filter((part) => part.functionCall);
+    const functionCalls = parts.filter(part => part.functionCall);
     if (functionCalls.length > 0) {
       for (const part of functionCalls) {
         await handleFunctionCall(part.functionCall);
@@ -401,7 +432,7 @@ initChat();
 // Generic event tracking setup
 document.addEventListener('DOMContentLoaded', () => {
   // Track all clicks
-  window.addEventListener('click', (e) => {
+  window.addEventListener('click', e => {
     trackInteraction('click', {
       target: {
         tagName: e.target.tagName,
@@ -418,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Track all input interactions
-  window.addEventListener('input', (e) => {
+  window.addEventListener('input', e => {
     if (e.target.type !== 'password') {
       trackInteraction('input', {
         element: {
@@ -432,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Track form submissions
-  window.addEventListener('submit', (e) => {
+  window.addEventListener('submit', e => {
     const formData = new FormData(e.target);
     const safeFormData = {};
 
@@ -553,8 +584,8 @@ async function captureViewport() {
     });
 
     // Convert to base64
-    const result = await new Promise((resolve) => {
-      screenshot.toBlob((blob) => {
+    const result = await new Promise(resolve => {
+      screenshot.toBlob(blob => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64Data = reader.result.split(',')[1];
@@ -610,7 +641,7 @@ async function handleFunctionCall(functionCall) {
 }
 
 sendButton.addEventListener('click', handleSendMessage);
-chatInput.addEventListener('keypress', (e) => {
+chatInput.addEventListener('keypress', e => {
   if (e.key === 'Enter') {
     handleSendMessage();
   }

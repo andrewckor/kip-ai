@@ -6,7 +6,7 @@ body {
   height: 100vh;
 }
 
-#canvas-container {
+#site-container {
   position: relative;
   flex: 1;
   padding: 20px;
