@@ -7,8 +7,10 @@ body {
 }
 
 #canvas-container {
+  position: relative;
   flex: 1;
   padding: 20px;
+  overflow-y: auto;
 }
 
 /* Navigation Styles */
@@ -88,11 +90,6 @@ body {
   to {
     opacity: 1;
   }
-}
-
-#myCanvas {
-  border: 1px solid #ccc;
-  background: white;
 }
 
 #chat-container {

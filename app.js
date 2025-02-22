@@ -2,13 +2,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import html2canvas from 'html2canvas';
 import { config } from './config.js';
 
-// Initialize canvas
-const canvas = document.getElementById('myCanvas');
-const ctx = canvas.getContext('2d');
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
-
 // Define available functions for Gemini
 const functionDefinitions = [
   {
@@ -117,46 +110,6 @@ function highlightPageElement(selector) {
     return JSON.stringify(coordinates, null, 2);
   }
   return `Element with selector "${selector}" not found`;
-}
-
-// Set canvas size
-function resizeCanvas() {
-  const container = document.getElementById('canvas-container');
-  canvas.width = container.clientWidth - 40; // Adjust for padding
-  canvas.height = container.clientHeight - 40;
-}
-
-// Initial resize
-resizeCanvas();
-window.addEventListener('resize', resizeCanvas);
-
-// Drawing event listeners
-canvas.addEventListener('mousedown', startDrawing);
-canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseup', stopDrawing);
-canvas.addEventListener('mouseout', stopDrawing);
-
-function startDrawing(e) {
-  isDrawing = true;
-  [lastX, lastY] = [e.offsetX, e.offsetY];
-}
-
-function draw(e) {
-  if (!isDrawing) return;
-
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
-  ctx.lineCap = 'round';
-  ctx.stroke();
-
-  [lastX, lastY] = [e.offsetX, e.offsetY];
-}
-
-function stopDrawing() {
-  isDrawing = false;
 }
 
 // Chat functionality
@@ -583,9 +536,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function captureViewport() {
   try {
-    const canvas = await html2canvas(document.documentElement);
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => {
+    // Create a temporary canvas for the screenshot
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.style.position = 'absolute';
+    tempCanvas.style.top = '-9999px';
+    tempCanvas.style.left = '-9999px';
+    document.body.appendChild(tempCanvas);
+
+    // Capture the screenshot
+    const screenshot = await html2canvas(document.documentElement, {
+      canvas: tempCanvas,
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+    });
+
+    // Convert to base64
+    const result = await new Promise((resolve) => {
+      screenshot.toBlob((blob) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64Data = reader.result.split(',')[1];
@@ -594,6 +562,10 @@ async function captureViewport() {
         reader.readAsDataURL(blob);
       }, 'image/png');
     });
+
+    // Clean up - remove the temporary canvas
+    document.body.removeChild(tempCanvas);
+    return result;
   } catch (error) {
     console.error('Error capturing viewport:', error);
     return null;
