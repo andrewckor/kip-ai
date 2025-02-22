@@ -28,6 +28,28 @@ const functionDefinitions = [
 ];
 
 // Function implementation
+function createFloatingCursor(x, y) {
+  // Remove any existing floating cursor
+  const existingCursor = document.querySelector(".floating-hand");
+  if (existingCursor) {
+    existingCursor.remove();
+  }
+
+  // Create the floating cursor element
+  const cursor = document.createElement("div");
+  cursor.className = "floating-hand";
+  cursor.innerHTML = CURSOR_IMAGE;
+
+  // Position the cursor
+  cursor.style.left = `${x}px`;
+  cursor.style.top = `${y}px`;
+
+  // Add to document
+  document.body.appendChild(cursor);
+
+  return cursor;
+}
+
 function highlightPageElement(selector) {
   const element = document.querySelector(selector);
   if (element) {
@@ -39,9 +61,17 @@ function highlightPageElement(selector) {
       height: rect.height,
       element: selector,
     };
-    const theElement = document.querySelector(selector);
-    console.log("Element Coordinates:", theElement);
-    theElement.style.backgroundColor = "red";
+
+    // Highlight the element
+    element.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
+    element.style.outline = "2px solid red";
+    element.style.transition = "all 0.3s ease-in-out";
+
+    // Create floating cursor below the element
+    const cursorX = rect.left + window.scrollX + rect.width / 2 - 16; // Center horizontally
+    const cursorY = rect.bottom + window.scrollY + 10; // 10px below the element
+    createFloatingCursor(cursorX, cursorY);
+
     shouldKipObserveInteractions = true;
     return JSON.stringify(coordinates, null, 2);
   }
