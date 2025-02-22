@@ -2,6 +2,14 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import html2canvas from 'html2canvas';
 import { config } from './config.js';
 
+// Initialize Gemini with function calling
+const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+const userInteractions = [];
+let shouldKipObserveInteractions = false;
+let chat;
+let chatElements = null;
+
 // Define available functions for Gemini
 const functionDefinitions = [
   {
@@ -112,18 +120,6 @@ function highlightPageElement(selector) {
   return `Element with selector "${selector}" not found`;
 }
 
-// Chat functionality
-const chatMessages = document.getElementById('chat-messages');
-const chatInput = document.getElementById('chat-input');
-const sendButton = document.getElementById('send-button');
-
-// Initialize Gemini with function calling
-const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-const userInteractions = [];
-let shouldKipObserveInteractions = false;
-let chat;
-
 const CURSOR_IMAGE = `<svg
       id="cursor"
       class="floating-hand"
@@ -190,6 +186,110 @@ const CURSOR_IMAGE = `<svg
       <rect x="105" y="26.25" width="26.25" height="236.25" fill="black" />
     </svg>`;
 
+// Create and append chat container
+const createChatContainer = () => {
+  const chatContainer = document.createElement('div');
+  chatContainer.id = 'chat-container';
+
+  const chatMessages = document.createElement('div');
+  chatMessages.id = 'chat-messages';
+
+  const chatInputContainer = document.createElement('div');
+  chatInputContainer.id = 'chat-input-container';
+
+  const chatInput = document.createElement('input');
+  chatInput.type = 'text';
+  chatInput.id = 'chat-input';
+  chatInput.placeholder = 'Type your message...';
+  chatInput.value = 'How do I send my resume?';
+
+  const sendButton = document.createElement('button');
+  sendButton.id = 'send-button';
+  sendButton.textContent = 'Send';
+
+  chatInputContainer.appendChild(chatInput);
+  chatInputContainer.appendChild(sendButton);
+  chatContainer.appendChild(chatMessages);
+  chatContainer.appendChild(chatInputContainer);
+
+  document.body.appendChild(chatContainer);
+
+  // Store references to chat elements
+  chatElements = {
+    container: chatContainer,
+    messages: chatMessages,
+    input: chatInput,
+    sendButton: sendButton,
+  };
+
+  // Set up event listeners after elements are in the DOM
+  sendButton.addEventListener('click', handleSendMessage);
+  chatInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  });
+
+  return chatElements;
+};
+
+// Helper function to add messages to the chat
+function addMessage(message, isUser) {
+  if (!chatElements?.messages) return;
+
+  const messageDiv = document.createElement('div');
+  messageDiv.classList.add('message');
+  messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+
+  // Add timestamp
+  const timestamp = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const header = document.createElement('div');
+  header.style.fontSize = '0.8em';
+  header.style.marginBottom = '5px';
+  header.textContent = `${isUser ? 'You' : 'Kip'} - ${timestamp}`;
+  messageDiv.appendChild(header);
+
+  // Add message content
+  const content = document.createElement('div');
+  content.textContent = message;
+  messageDiv.appendChild(content);
+
+  chatElements.messages.appendChild(messageDiv);
+  chatElements.messages.scrollTop = chatElements.messages.scrollHeight;
+}
+
+// Update handleSendMessage function
+async function handleSendMessage() {
+  if (!chatElements?.input) return;
+
+  const message = chatElements.input.value.trim();
+  if (!message) return;
+
+  // Add user message to UI and chat history
+  addMessage(message, true);
+  chatHistory.push({ role: 'user', parts: [{ text: message }] });
+  chatElements.input.value = '';
+
+  try {
+    const fullContext = await createFullMessageWithContext(`User Message: ${message}`);
+    const result = await chat.sendMessage([fullContext.text, fullContext.image]);
+
+    // Process the response
+    const response = await handleAIResponse(result.response);
+
+    // Add assistant's response to chat history (without the context)
+    if (response) {
+      chatHistory.push({ role: 'assistant', parts: [{ text: response }] });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    addMessage('Sorry, I encountered an error processing your request.', false);
+  }
+}
+
 // Initialize chat when the page loads
 let chatHistory = [];
 
@@ -202,7 +302,7 @@ async function initChat() {
           parts: [
             {
               text: `
-                You are an AI assistant helping users navigate a web application. 
+                You are an AI assistant helping users navigate a web application. YOU ONLY SPEAK τοπική διάλεκτο Ιωαννίνων.
 
                 GOAL:
                 - Help users achieve their requests by utilizing all available information:
@@ -267,6 +367,13 @@ async function initChat() {
   }
 }
 
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  createChatContainer();
+  initChat();
+  setupEventTracking();
+});
+
 // Helper function to create full message with context
 async function createFullMessageWithContext(message) {
   const base64Image = await captureViewport();
@@ -292,248 +399,6 @@ ${htmlContent}`,
     },
   };
 }
-
-// Update handleSendMessage function
-async function handleSendMessage() {
-  const message = chatInput.value.trim();
-  if (!message) return;
-
-  // Add user message to UI and chat history
-  addMessage(message, true);
-  chatHistory.push({ role: 'user', parts: [{ text: message }] });
-  chatInput.value = '';
-
-  try {
-    const fullContext = await createFullMessageWithContext(`User Message: ${message}`);
-    const result = await chat.sendMessage([fullContext.text, fullContext.image]);
-
-    // Process the response
-    const response = await handleAIResponse(result.response);
-
-    // Add assistant's response to chat history (without the context)
-    if (response) {
-      chatHistory.push({ role: 'assistant', parts: [{ text: response }] });
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    addMessage('Sorry, I encountered an error processing your request.', false);
-  }
-}
-
-// Update handleAIResponse to return the response text
-async function handleAIResponse(response) {
-  try {
-    // Get the response parts
-    const parts = response.candidates[0].content.parts;
-    let responseText = '';
-
-    // First, collect all text parts
-    for (const part of parts) {
-      if (part.text) {
-        responseText += part.text + '\n';
-      }
-    }
-
-    // Add the initial response text if any
-    if (responseText) {
-      addMessage(responseText.trim(), false);
-    }
-
-    // Then execute all function calls in sequence
-    const functionCalls = parts.filter(part => part.functionCall);
-    if (functionCalls.length > 0) {
-      for (const part of functionCalls) {
-        await handleFunctionCall(part.functionCall);
-      }
-    }
-
-    return responseText.trim();
-  } catch (error) {
-    console.error('Error handling AI response:', error);
-    addMessage('Sorry, I encountered an error processing the response.', false);
-    return null;
-  }
-}
-
-// Update trackInteraction function
-function trackInteraction(type, details) {
-  userInteractions.push({
-    type,
-    details,
-    timestamp: new Date().toISOString(),
-  });
-
-  // Notify AI if shouldKipObserveInteractions is true
-  if (shouldKipObserveInteractions && chat && type === 'click') {
-    const latestInteraction = {
-      type,
-      details,
-      timestamp: new Date().toISOString(),
-    };
-
-    const interactionMessage = `User performed click action: ${JSON.stringify(
-      latestInteraction,
-      null,
-      2
-    )}
-	- If this isn't what user supposed to do, advise them through the chat. And do not remove the active highlight
-	- If the user did the correct action then remove the active highlight.`;
-
-    // Add clean interaction message to chat history
-    chatHistory.push({ role: 'user', parts: [{ text: interactionMessage }] });
-
-    // Create and send the full message with context
-    (async () => {
-      try {
-        const fullContext = await createFullMessageWithContext(interactionMessage);
-        const result = await chat.sendMessage([fullContext.text, fullContext.image]);
-        await handleAIResponse(result.response);
-      } catch (error) {
-        console.error('Error notifying AI of interaction:', error);
-      }
-    })();
-  }
-}
-
-// Initialize chat immediately
-initChat();
-
-// Generic event tracking setup
-document.addEventListener('DOMContentLoaded', () => {
-  // Track all clicks
-  window.addEventListener('click', e => {
-    trackInteraction('click', {
-      target: {
-        tagName: e.target.tagName,
-        id: e.target.id,
-        className: e.target.className,
-        text: e.target.textContent?.slice(0, 100), // Limit text length
-        href: e.target.href,
-      },
-      position: {
-        x: e.clientX,
-        y: e.clientY,
-      },
-    });
-  });
-
-  // Track all input interactions
-  window.addEventListener('input', e => {
-    if (e.target.type !== 'password') {
-      trackInteraction('input', {
-        element: {
-          type: e.target.type,
-          id: e.target.id,
-          name: e.target.name,
-        },
-        value: e.target.value,
-      });
-    }
-  });
-
-  // Track form submissions
-  window.addEventListener('submit', e => {
-    const formData = new FormData(e.target);
-    const safeFormData = {};
-
-    for (let [key, value] of formData.entries()) {
-      safeFormData[key] = key.includes('password') ? '[REDACTED]' : value;
-    }
-
-    trackInteraction('form_submission', {
-      formId: e.target.id,
-      data: safeFormData,
-    });
-  });
-
-  // Track scroll with debouncing
-  let scrollTimeout;
-  window.addEventListener('scroll', () => {
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(() => {
-      trackInteraction('scroll', {
-        position: {
-          x: window.scrollX,
-          y: window.scrollY,
-        },
-        percentage: {
-          vertical:
-            (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100,
-          horizontal:
-            (window.scrollX / (document.documentElement.scrollWidth - window.innerWidth)) * 100,
-        },
-      });
-    }, 150);
-  });
-
-  // Track window resize with debouncing
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      trackInteraction('resize', {
-        viewport: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-        },
-        screen: {
-          width: window.screen.width,
-          height: window.screen.height,
-        },
-      });
-    }, 150);
-  });
-
-  // Track page visibility changes
-  document.addEventListener('visibilitychange', () => {
-    trackInteraction('visibility_change', {
-      state: document.visibilityState,
-    });
-  });
-
-  // Track user focus/blur on window
-  window.addEventListener('focus', () => {
-    trackInteraction('window_focus', {
-      state: 'focused',
-    });
-  });
-
-  window.addEventListener('blur', () => {
-    trackInteraction('window_focus', {
-      state: 'blurred',
-    });
-  });
-
-  // Track page load timing
-  window.addEventListener('load', () => {
-    const timing = window.performance.timing;
-    const navigationStart = timing.navigationStart;
-
-    trackInteraction('page_load_metrics', {
-      loadTime: timing.loadEventEnd - navigationStart,
-      domReady: timing.domContentLoadedEventEnd - navigationStart,
-      firstPaint: performance.getEntriesByType('paint')[0]?.startTime,
-      firstContentfulPaint: performance.getEntriesByType('paint')[1]?.startTime,
-    });
-  });
-
-  // Track when user leaves the page
-  window.addEventListener('beforeunload', () => {
-    trackInteraction('page_exit', {
-      totalInteractions: userInteractions.length,
-      timeOnPage: Date.now() - performance.timing.navigationStart,
-    });
-  });
-
-  // Track network status changes
-  window.addEventListener('online', () => {
-    trackInteraction('network_status', { status: 'online' });
-  });
-
-  window.addEventListener('offline', () => {
-    trackInteraction('network_status', { status: 'offline' });
-  });
-});
 
 async function captureViewport() {
   try {
@@ -573,31 +438,6 @@ async function captureViewport() {
   }
 }
 
-function addMessage(message, isUser) {
-  const messageDiv = document.createElement('div');
-  messageDiv.classList.add('message');
-  messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
-
-  // Add timestamp
-  const timestamp = new Date().toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-  const header = document.createElement('div');
-  header.style.fontSize = '0.8em';
-  header.style.marginBottom = '5px';
-  header.textContent = `${isUser ? 'You' : 'Kip'} - ${timestamp}`;
-  messageDiv.appendChild(header);
-
-  // Add message content
-  const content = document.createElement('div');
-  content.textContent = message;
-  messageDiv.appendChild(content);
-
-  chatMessages.appendChild(messageDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
 async function handleFunctionCall(functionCall) {
   const { name, args } = functionCall;
 
@@ -609,12 +449,100 @@ async function handleFunctionCall(functionCall) {
   return `Function ${name} not implemented`;
 }
 
-sendButton.addEventListener('click', handleSendMessage);
-chatInput.addEventListener('keypress', e => {
-  if (e.key === 'Enter') {
-    handleSendMessage();
+// Update handleAIResponse to return the response text
+async function handleAIResponse(response) {
+  try {
+    // Get the response parts
+    const parts = response.candidates[0].content.parts;
+    let responseText = '';
+
+    // First, collect all text parts
+    for (const part of parts) {
+      if (part.text) {
+        responseText += part.text + '\n';
+      }
+    }
+
+    // Add the initial response text if any
+    if (responseText) {
+      addMessage(responseText.trim(), false);
+    }
+
+    // Then execute all function calls in sequence
+    const functionCalls = parts.filter(part => part.functionCall);
+    if (functionCalls.length > 0) {
+      for (const part of functionCalls) {
+        await handleFunctionCall(part.functionCall);
+      }
+    }
+
+    return responseText.trim();
+  } catch (error) {
+    console.error('Error handling AI response:', error);
+    addMessage('Sorry, I encountered an error processing the response.', false);
+    return null;
   }
-});
+}
+
+// Setup event tracking
+function setupEventTracking() {
+  // Track all clicks
+  window.addEventListener('click', e => {
+    trackInteraction('click', {
+      target: {
+        tagName: e.target.tagName,
+        id: e.target.id,
+        className: e.target.className,
+        text: e.target.textContent?.slice(0, 100),
+        href: e.target.href,
+      },
+      position: {
+        x: e.clientX,
+        y: e.clientY,
+      },
+    });
+  });
+
+  // Add other event tracking setup here...
+}
+
+// Update trackInteraction function
+function trackInteraction(type, details) {
+  userInteractions.push({
+    type,
+    details,
+    timestamp: new Date().toISOString(),
+  });
+
+  // Notify AI if shouldKipObserveInteractions is true
+  if (shouldKipObserveInteractions && chat && type === 'click') {
+    const latestInteraction = {
+      type,
+      details,
+      timestamp: new Date().toISOString(),
+    };
+
+    const interactionMessage = `User performed click action: ${JSON.stringify(
+      latestInteraction,
+      null,
+      2
+    )}`;
+
+    // Add clean interaction message to chat history
+    chatHistory.push({ role: 'user', parts: [{ text: interactionMessage }] });
+
+    // Create and send the full message with context
+    (async () => {
+      try {
+        const fullContext = await createFullMessageWithContext(interactionMessage);
+        const result = await chat.sendMessage([fullContext.text, fullContext.image]);
+        await handleAIResponse(result.response);
+      } catch (error) {
+        console.error('Error notifying AI of interaction:', error);
+      }
+    })();
+  }
+}
 
 // Export any necessary functions or variables
 export { userInteractions };
