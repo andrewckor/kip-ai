@@ -1,170 +1,172 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import html2canvas from "html2canvas";
-import { config } from "./config.js";
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import html2canvas from 'html2canvas';
+import { config } from './config.js';
 
 // Initialize canvas
-const canvas = document.getElementById("myCanvas");
-const ctx = canvas.getContext("2d");
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
 
 // Define available functions for Gemini
-const functionDefinitions = [{
-        name: "highlightPageElement",
-        description: "Highlight an element on the page to guide the user where to click or interact",
-        parameters: {
-            type: "object",
-            properties: {
-                selector: {
-                    type: "string",
-                    description: "The CSS selector or ID of the element to highlight (e.g., '#email' or '.submit-button')",
-                },
-            },
-            required: ["selector"],
+const functionDefinitions = [
+  {
+    name: 'highlightPageElement',
+    description: 'Highlight an element on the page to guide the user where to click or interact',
+    parameters: {
+      type: 'object',
+      properties: {
+        selector: {
+          type: 'string',
+          description:
+            "The CSS selector or ID of the element to highlight (e.g., '#email' or '.submit-button')",
         },
+      },
+      required: ['selector'],
     },
-    {
-        name: "removeActiveHighlight",
-        description: "Remove any active highlight from the page when the user moved to next step",
-        parameters: {
-            type: "object",
-            properties: {
-                selector: {
-                    type: "string",
-                    description: "The selector parameter is ignored but required by the API for consistency",
-                },
-            },
-            required: ["selector"],
+  },
+  {
+    name: 'removeActiveHighlight',
+    description: 'Remove any active highlight from the page when the user moved to next step',
+    parameters: {
+      type: 'object',
+      properties: {
+        selector: {
+          type: 'string',
+          description: 'The selector parameter is ignored but required by the API for consistency',
         },
+      },
+      required: ['selector'],
     },
+  },
 ];
 
 // Function implementation
 function createFloatingCursor(x, y) {
-    // Remove any existing floating cursor
-    const existingCursor = document.querySelector(".floating-hand");
-    if (existingCursor) {
-        existingCursor.remove();
-    }
+  // Remove any existing floating cursor
+  const existingCursor = document.querySelector('.floating-hand');
+  if (existingCursor) {
+    existingCursor.remove();
+  }
 
-    // Create the floating cursor element
-    const cursor = document.createElement("div");
-    cursor.className = "floating-hand";
-    cursor.innerHTML = CURSOR_IMAGE;
+  // Create the floating cursor element
+  const cursor = document.createElement('div');
+  cursor.className = 'floating-hand';
+  cursor.innerHTML = CURSOR_IMAGE;
 
-    // Position the cursor
-    cursor.style.left = `${x}px`;
-    cursor.style.top = `${y}px`;
+  // Position the cursor
+  cursor.style.left = `${x}px`;
+  cursor.style.top = `${y}px`;
 
-    // Add to document
-    document.body.appendChild(cursor);
+  // Add to document
+  document.body.appendChild(cursor);
 
-    return cursor;
+  return cursor;
 }
 
 // Keep track of currently highlighted element
 let currentlyHighlightedElement = null;
 
 function removeActiveHighlight() {
-    // Remove cursor
-    const cursor = document.querySelector(".floating-hand");
-    if (cursor) {
-        cursor.remove();
-    }
+  // Remove cursor
+  const cursor = document.querySelector('.floating-hand');
+  if (cursor) {
+    cursor.remove();
+  }
 
-    // Remove highlight from current element
-    if (currentlyHighlightedElement) {
-        currentlyHighlightedElement.style.backgroundColor = "";
-        currentlyHighlightedElement.style.outline = "";
-        currentlyHighlightedElement.style.transition = "";
-        currentlyHighlightedElement = null;
-    }
+  // Remove highlight from current element
+  if (currentlyHighlightedElement) {
+    currentlyHighlightedElement.style.backgroundColor = '';
+    currentlyHighlightedElement.style.outline = '';
+    currentlyHighlightedElement.style.transition = '';
+    currentlyHighlightedElement = null;
+  }
 
-    shouldKipObserveInteractions = false;
-    return "Highlight and cursor removed";
+  shouldKipObserveInteractions = false;
+  return 'Highlight and cursor removed';
 }
 
 function highlightPageElement(selector) {
-    const element = document.querySelector(selector);
-    if (element) {
-        // Remove any existing highlight first
-        removeActiveHighlight();
+  const element = document.querySelector(selector);
+  if (element) {
+    // Remove any existing highlight first
+    removeActiveHighlight();
 
-        const rect = element.getBoundingClientRect();
-        const coordinates = {
-            x: rect.left + window.scrollX,
-            y: rect.top + window.scrollY,
-            width: rect.width,
-            height: rect.height,
-            element: selector,
-        };
+    const rect = element.getBoundingClientRect();
+    const coordinates = {
+      x: rect.left + window.scrollX,
+      y: rect.top + window.scrollY,
+      width: rect.width,
+      height: rect.height,
+      element: selector,
+    };
 
-        // Highlight the element
-        element.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
-        element.style.outline = "2px solid red";
-        element.style.transition = "all 0.3s ease-in-out";
-        currentlyHighlightedElement = element;
+    // Highlight the element
+    element.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+    element.style.outline = '2px solid red';
+    element.style.transition = 'all 0.3s ease-in-out';
+    currentlyHighlightedElement = element;
 
-        // Create floating cursor below the element
-        const cursorX = rect.left + window.scrollX + rect.width / 2 - 16; // Center horizontally
-        const cursorY = rect.bottom + window.scrollY + 10; // 10px below the element
-        createFloatingCursor(cursorX, cursorY);
+    // Create floating cursor below the element
+    const cursorX = rect.left + window.scrollX + rect.width / 2 - 16; // Center horizontally
+    const cursorY = rect.bottom + window.scrollY + 10; // 10px below the element
+    createFloatingCursor(cursorX, cursorY);
 
-        shouldKipObserveInteractions = true;
-        return JSON.stringify(coordinates, null, 2);
-    }
-    return `Element with selector "${selector}" not found`;
+    shouldKipObserveInteractions = true;
+    return JSON.stringify(coordinates, null, 2);
+  }
+  return `Element with selector "${selector}" not found`;
 }
 
 // Set canvas size
 function resizeCanvas() {
-    const container = document.getElementById("canvas-container");
-    canvas.width = container.clientWidth - 40; // Adjust for padding
-    canvas.height = container.clientHeight - 40;
+  const container = document.getElementById('canvas-container');
+  canvas.width = container.clientWidth - 40; // Adjust for padding
+  canvas.height = container.clientHeight - 40;
 }
 
 // Initial resize
 resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener('resize', resizeCanvas);
 
 // Drawing event listeners
-canvas.addEventListener("mousedown", startDrawing);
-canvas.addEventListener("mousemove", draw);
-canvas.addEventListener("mouseup", stopDrawing);
-canvas.addEventListener("mouseout", stopDrawing);
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseout', stopDrawing);
 
 function startDrawing(e) {
-    isDrawing = true;
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+  isDrawing = true;
+  [lastX, lastY] = [e.offsetX, e.offsetY];
 }
 
 function draw(e) {
-    if (!isDrawing) return;
+  if (!isDrawing) return;
 
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 2;
-    ctx.lineCap = "round";
-    ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.stroke();
 
-    [lastX, lastY] = [e.offsetX, e.offsetY];
+  [lastX, lastY] = [e.offsetX, e.offsetY];
 }
 
 function stopDrawing() {
-    isDrawing = false;
+  isDrawing = false;
 }
 
 // Chat functionality
-const chatMessages = document.getElementById("chat-messages");
-const chatInput = document.getElementById("chat-input");
-const sendButton = document.getElementById("send-button");
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const sendButton = document.getElementById('send-button');
 
 // Initialize Gemini with function calling
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 const userInteractions = [];
 let shouldKipObserveInteractions = false;
 let chat;
@@ -239,12 +241,14 @@ const CURSOR_IMAGE = `<svg
 let chatHistory = [];
 
 async function initChat() {
-    try {
-        chat = model.startChat({
-                    history: [{
-                                role: "user",
-                                parts: [{
-                                            text: `
+  try {
+    chat = model.startChat({
+      history: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: `
                 You are an AI assistant helping users navigate a web application. 
 
                 GOAL:
@@ -264,10 +268,10 @@ async function initChat() {
                     (fn) => `
                 ${fn.name}:
                 - Description: ${fn.description}
-                - Required parameters: ${fn.parameters.required.join(", ")}
+                - Required parameters: ${fn.parameters.required.join(', ')}
                 `
                   )
-                  .join("\n")}
+                  .join('\n')}
                 
                 RULES:
                 - Always be concise and direct in your responses.
@@ -296,7 +300,7 @@ async function initChat() {
                 [Call highlightPageElement for the 'Buy now' link]
                 "Click 'Buy Now' to see the application form."
 
-                Remember to chain the remove and highlight commands together when transitioning between steps or remove the highligt step if it's not needed anymore.
+                Remember to chain the remove and highlight commands together when transitioning between steps or remove the highlight step if it's not needed anymore.
                 `,
             },
           ],
@@ -304,9 +308,9 @@ async function initChat() {
       ],
       tools: [{ functionDeclarations: functionDefinitions }],
     });
-    console.log("Chat initialized successfully");
+    console.log('Chat initialized successfully');
   } catch (error) {
-    console.error("Error initializing chat:", error);
+    console.error('Error initializing chat:', error);
   }
 }
 
@@ -314,7 +318,7 @@ async function initChat() {
 async function createFullMessageWithContext(message) {
   const base64Image = await captureViewport();
   if (!base64Image) {
-    throw new Error("Failed to capture viewport");
+    throw new Error('Failed to capture viewport');
   }
 
   const htmlContent = document.documentElement.outerHTML;
@@ -330,7 +334,7 @@ ${htmlContent}`,
     image: {
       inlineData: {
         data: base64Image,
-        mimeType: "image/png",
+        mimeType: 'image/png',
       },
     },
   };
@@ -343,28 +347,23 @@ async function handleSendMessage() {
 
   // Add user message to UI and chat history
   addMessage(message, true);
-  chatHistory.push({ role: "user", parts: [{ text: message }] });
-  chatInput.value = "";
+  chatHistory.push({ role: 'user', parts: [{ text: message }] });
+  chatInput.value = '';
 
   try {
-    const fullContext = await createFullMessageWithContext(
-      `User Message: ${message}`
-    );
-    const result = await chat.sendMessage([
-      fullContext.text,
-      fullContext.image,
-    ]);
+    const fullContext = await createFullMessageWithContext(`User Message: ${message}`);
+    const result = await chat.sendMessage([fullContext.text, fullContext.image]);
 
     // Process the response
     const response = await handleAIResponse(result.response);
 
     // Add assistant's response to chat history (without the context)
     if (response) {
-      chatHistory.push({ role: "assistant", parts: [{ text: response }] });
+      chatHistory.push({ role: 'assistant', parts: [{ text: response }] });
     }
   } catch (error) {
-    console.error("Error:", error);
-    addMessage("Sorry, I encountered an error processing your request.", false);
+    console.error('Error:', error);
+    addMessage('Sorry, I encountered an error processing your request.', false);
   }
 }
 
@@ -373,12 +372,12 @@ async function handleAIResponse(response) {
   try {
     // Get the response parts
     const parts = response.candidates[0].content.parts;
-    let responseText = "";
+    let responseText = '';
 
     // First, collect all text parts
     for (const part of parts) {
       if (part.text) {
-        responseText += part.text + "\n";
+        responseText += part.text + '\n';
       }
     }
 
@@ -397,8 +396,8 @@ async function handleAIResponse(response) {
 
     return responseText.trim();
   } catch (error) {
-    console.error("Error handling AI response:", error);
-    addMessage("Sorry, I encountered an error processing the response.", false);
+    console.error('Error handling AI response:', error);
+    addMessage('Sorry, I encountered an error processing the response.', false);
     return null;
   }
 }
@@ -412,7 +411,7 @@ function trackInteraction(type, details) {
   });
 
   // Notify AI if shouldKipObserveInteractions is true
-  if (shouldKipObserveInteractions && chat && type === "click") {
+  if (shouldKipObserveInteractions && chat && type === 'click') {
     const latestInteraction = {
       type,
       details,
@@ -427,21 +426,16 @@ function trackInteraction(type, details) {
     If this isn't what user supposed to do, advise them through the chat. And do not remove the active highlight.`;
 
     // Add clean interaction message to chat history
-    chatHistory.push({ role: "user", parts: [{ text: interactionMessage }] });
+    chatHistory.push({ role: 'user', parts: [{ text: interactionMessage }] });
 
     // Create and send the full message with context
     (async () => {
       try {
-        const fullContext = await createFullMessageWithContext(
-          interactionMessage
-        );
-        const result = await chat.sendMessage([
-          fullContext.text,
-          fullContext.image,
-        ]);
+        const fullContext = await createFullMessageWithContext(interactionMessage);
+        const result = await chat.sendMessage([fullContext.text, fullContext.image]);
         await handleAIResponse(result.response);
       } catch (error) {
-        console.error("Error notifying AI of interaction:", error);
+        console.error('Error notifying AI of interaction:', error);
       }
     })();
   }
@@ -451,10 +445,10 @@ function trackInteraction(type, details) {
 initChat();
 
 // Generic event tracking setup
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   // Track all clicks
-  window.addEventListener("click", (e) => {
-    trackInteraction("click", {
+  window.addEventListener('click', (e) => {
+    trackInteraction('click', {
       target: {
         tagName: e.target.tagName,
         id: e.target.id,
@@ -470,9 +464,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Track all input interactions
-  window.addEventListener("input", (e) => {
-    if (e.target.type !== "password") {
-      trackInteraction("input", {
+  window.addEventListener('input', (e) => {
+    if (e.target.type !== 'password') {
+      trackInteraction('input', {
         element: {
           type: e.target.type,
           id: e.target.id,
@@ -484,15 +478,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Track form submissions
-  window.addEventListener("submit", (e) => {
+  window.addEventListener('submit', (e) => {
     const formData = new FormData(e.target);
     const safeFormData = {};
 
     for (let [key, value] of formData.entries()) {
-      safeFormData[key] = key.includes("password") ? "[REDACTED]" : value;
+      safeFormData[key] = key.includes('password') ? '[REDACTED]' : value;
     }
 
-    trackInteraction("form_submission", {
+    trackInteraction('form_submission', {
       formId: e.target.id,
       data: safeFormData,
     });
@@ -500,23 +494,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Track scroll with debouncing
   let scrollTimeout;
-  window.addEventListener("scroll", () => {
+  window.addEventListener('scroll', () => {
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
-      trackInteraction("scroll", {
+      trackInteraction('scroll', {
         position: {
           x: window.scrollX,
           y: window.scrollY,
         },
         percentage: {
           vertical:
-            (window.scrollY /
-              (document.documentElement.scrollHeight - window.innerHeight)) *
-            100,
+            (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100,
           horizontal:
-            (window.scrollX /
-              (document.documentElement.scrollWidth - window.innerWidth)) *
-            100,
+            (window.scrollX / (document.documentElement.scrollWidth - window.innerWidth)) * 100,
         },
       });
     }, 150);
@@ -524,10 +514,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Track window resize with debouncing
   let resizeTimeout;
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-      trackInteraction("resize", {
+      trackInteraction('resize', {
         viewport: {
           width: window.innerWidth,
           height: window.innerHeight,
@@ -541,53 +531,53 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Track page visibility changes
-  document.addEventListener("visibilitychange", () => {
-    trackInteraction("visibility_change", {
+  document.addEventListener('visibilitychange', () => {
+    trackInteraction('visibility_change', {
       state: document.visibilityState,
     });
   });
 
   // Track user focus/blur on window
-  window.addEventListener("focus", () => {
-    trackInteraction("window_focus", {
-      state: "focused",
+  window.addEventListener('focus', () => {
+    trackInteraction('window_focus', {
+      state: 'focused',
     });
   });
 
-  window.addEventListener("blur", () => {
-    trackInteraction("window_focus", {
-      state: "blurred",
+  window.addEventListener('blur', () => {
+    trackInteraction('window_focus', {
+      state: 'blurred',
     });
   });
 
   // Track page load timing
-  window.addEventListener("load", () => {
+  window.addEventListener('load', () => {
     const timing = window.performance.timing;
     const navigationStart = timing.navigationStart;
 
-    trackInteraction("page_load_metrics", {
+    trackInteraction('page_load_metrics', {
       loadTime: timing.loadEventEnd - navigationStart,
       domReady: timing.domContentLoadedEventEnd - navigationStart,
-      firstPaint: performance.getEntriesByType("paint")[0]?.startTime,
-      firstContentfulPaint: performance.getEntriesByType("paint")[1]?.startTime,
+      firstPaint: performance.getEntriesByType('paint')[0]?.startTime,
+      firstContentfulPaint: performance.getEntriesByType('paint')[1]?.startTime,
     });
   });
 
   // Track when user leaves the page
-  window.addEventListener("beforeunload", () => {
-    trackInteraction("page_exit", {
+  window.addEventListener('beforeunload', () => {
+    trackInteraction('page_exit', {
       totalInteractions: userInteractions.length,
       timeOnPage: Date.now() - performance.timing.navigationStart,
     });
   });
 
   // Track network status changes
-  window.addEventListener("online", () => {
-    trackInteraction("network_status", { status: "online" });
+  window.addEventListener('online', () => {
+    trackInteraction('network_status', { status: 'online' });
   });
 
-  window.addEventListener("offline", () => {
-    trackInteraction("network_status", { status: "offline" });
+  window.addEventListener('offline', () => {
+    trackInteraction('network_status', { status: 'offline' });
   });
 });
 
@@ -598,36 +588,36 @@ async function captureViewport() {
       canvas.toBlob((blob) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          const base64Data = reader.result.split(",")[1];
+          const base64Data = reader.result.split(',')[1];
           resolve(base64Data);
         };
         reader.readAsDataURL(blob);
-      }, "image/png");
+      }, 'image/png');
     });
   } catch (error) {
-    console.error("Error capturing viewport:", error);
+    console.error('Error capturing viewport:', error);
     return null;
   }
 }
 
 function addMessage(message, isUser) {
-  const messageDiv = document.createElement("div");
-  messageDiv.classList.add("message");
-  messageDiv.classList.add(isUser ? "user-message" : "bot-message");
+  const messageDiv = document.createElement('div');
+  messageDiv.classList.add('message');
+  messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
 
   // Add timestamp
   const timestamp = new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
+    hour: '2-digit',
+    minute: '2-digit',
   });
-  const header = document.createElement("div");
-  header.style.fontSize = "0.8em";
-  header.style.marginBottom = "5px";
-  header.textContent = `${isUser ? "You" : "Kip"} - ${timestamp}`;
+  const header = document.createElement('div');
+  header.style.fontSize = '0.8em';
+  header.style.marginBottom = '5px';
+  header.textContent = `${isUser ? 'You' : 'Kip'} - ${timestamp}`;
   messageDiv.appendChild(header);
 
   // Add message content
-  const content = document.createElement("div");
+  const content = document.createElement('div');
   content.textContent = message;
   messageDiv.appendChild(content);
 
@@ -638,17 +628,17 @@ function addMessage(message, isUser) {
 async function handleFunctionCall(functionCall) {
   const { name, args } = functionCall;
 
-  if (name === "highlightPageElement") {
+  if (name === 'highlightPageElement') {
     return highlightPageElement(args.selector);
-  } else if (name === "removeActiveHighlight") {
+  } else if (name === 'removeActiveHighlight') {
     return removeActiveHighlight();
   }
   return `Function ${name} not implemented`;
 }
 
-sendButton.addEventListener("click", handleSendMessage);
-chatInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
+sendButton.addEventListener('click', handleSendMessage);
+chatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
     handleSendMessage();
   }
 });
