@@ -238,7 +238,142 @@ const CURSOR_IMAGE = `<svg
       <rect x="105" y="26.25" width="26.25" height="236.25" fill="black" />
     </svg>`;
 
-// New unified function to handle AI responses
+// Initialize chat when the page loads
+let chatHistory = [];
+
+async function initChat() {
+  try {
+    chat = model.startChat({
+      history: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `
+                You are an AI assistant helping users navigate a web application. 
+
+                GOAL:
+                - Help users achieve their requests by utilizing all available information:
+                  * Screenshots of the current page state
+                  * HTML structure and content
+                  * User interaction history
+                  * Knowledge sources and documentation
+                - Guide users step by step through their tasks using visual aids and clear instructions
+                - Use highlighting tools when needed to point users to specific elements
+                - Ensure users successfully complete their intended actions
+                - Adapt guidance based on user interactions and feedback
+
+                TOOLS:
+                ${functionDefinitions
+                  .map(
+                    (fn) => `
+                ${fn.name}:
+                - Description: ${fn.description}
+                - Required parameters: ${fn.parameters.required.join(", ")}
+                `
+                  )
+                  .join("\n")}
+                
+                RULES:
+                - Always be concise and direct in your responses.
+                - Break the problem into smaller steps and explain to the user what steps need to follow
+                - Always highlight to the user where to press/navigate by using highlightPageElement
+                - Monitor user interactions after highlighting:
+                  * When user clicks the correct element, remove current highlight and highlight the next element in sequence
+                  * If the user clicks elsewhere, guide them back to the highlighted element
+                - Each step should follow this pattern:
+                  1. Highlight the target element
+                  2. Wait for correct interaction
+                  3. Remove current highlight and immediately highlight next element
+                  4. Repeat until task is complete
+                - Keep track of the current highlighted element and user's progress
+
+                EXAMPLE RESPONSE PATTERN:
+                When user clicks the correct element, respond like this:
+                "Great! You've clicked the correct button. Now let's move to the next step."
+                [Call removeActiveHighlight]
+                [Call highlightPageElement for the next element]
+                "Now click here to continue..."
+
+                Or when moving between sections:
+                "Perfect! Now let's go to the form section."
+                [Call removeActiveHighlight]
+                [Call highlightPageElement for the 'Buy now' link]
+                "Click 'Buy Now' to see the application form."
+
+                Remember to chain the remove and highlight commands together when transitioning between steps or remove the highligt step if it's not needed anymore.
+                `,
+            },
+          ],
+        },
+      ],
+      tools: [{ functionDeclarations: functionDefinitions }],
+    });
+    console.log("Chat initialized successfully");
+  } catch (error) {
+    console.error("Error initializing chat:", error);
+  }
+}
+
+// Helper function to create full message with context
+async function createFullMessageWithContext(message) {
+  const base64Image = await captureViewport();
+  if (!base64Image) {
+    throw new Error("Failed to capture viewport");
+  }
+
+  const htmlContent = document.documentElement.outerHTML;
+
+  return {
+    text: `${message}
+
+Current Page URL: ${window.location.href}
+Viewport Size: ${window.innerWidth}x${window.innerHeight}
+
+Page HTML:
+${htmlContent}`,
+    image: {
+      inlineData: {
+        data: base64Image,
+        mimeType: "image/png",
+      },
+    },
+  };
+}
+
+// Update handleSendMessage function
+async function handleSendMessage() {
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  // Add user message to UI and chat history
+  addMessage(message, true);
+  chatHistory.push({ role: "user", parts: [{ text: message }] });
+  chatInput.value = "";
+
+  try {
+    const fullContext = await createFullMessageWithContext(
+      `User Message: ${message}`
+    );
+    const result = await chat.sendMessage([
+      fullContext.text,
+      fullContext.image,
+    ]);
+
+    // Process the response
+    const response = await handleAIResponse(result.response);
+
+    // Add assistant's response to chat history (without the context)
+    if (response) {
+      chatHistory.push({ role: "assistant", parts: [{ text: response }] });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    addMessage("Sorry, I encountered an error processing your request.", false);
+  }
+}
+
+// Update handleAIResponse to return the response text
 async function handleAIResponse(response) {
   try {
     // Get the response parts
@@ -264,9 +399,12 @@ async function handleAIResponse(response) {
         await handleFunctionCall(part.functionCall);
       }
     }
+
+    return responseText.trim();
   } catch (error) {
     console.error("Error handling AI response:", error);
     addMessage("Sorry, I encountered an error processing the response.", false);
+    return null;
   }
 }
 
@@ -286,81 +424,36 @@ function trackInteraction(type, details) {
       timestamp: new Date().toISOString(),
     };
 
-    chat
-      .sendMessage(
-        `
-        User performed click action: ${JSON.stringify(
-          latestInteraction,
-          null,
-          2
-        )}
-        If this isn't what user supposed to do, advise them through the chat. And do not remove the active highlight.
-        `
-      )
-      .then((result) => handleAIResponse(result.response))
-      .catch((error) =>
-        console.error("Error notifying AI of interaction:", error)
-      );
+    const interactionMessage = `User performed click action: ${JSON.stringify(
+      latestInteraction,
+      null,
+      2
+    )}
+    If this isn't what user supposed to do, advise them through the chat. And do not remove the active highlight.`;
+
+    // Add clean interaction message to chat history
+    chatHistory.push({ role: "user", parts: [{ text: interactionMessage }] });
+
+    // Create and send the full message with context
+    (async () => {
+      try {
+        const fullContext = await createFullMessageWithContext(
+          interactionMessage
+        );
+        const result = await chat.sendMessage([
+          fullContext.text,
+          fullContext.image,
+        ]);
+        await handleAIResponse(result.response);
+      } catch (error) {
+        console.error("Error notifying AI of interaction:", error);
+      }
+    })();
   }
 }
 
-// Update handleSendMessage function
-async function handleSendMessage() {
-  const message = chatInput.value.trim();
-  if (!message) return;
-
-  // Add user message
-  addMessage(message, true);
-  chatInput.value = "";
-
-  try {
-    // Capture the viewport
-    const base64Image = await captureViewport();
-
-    if (!base64Image) {
-      throw new Error("Failed to capture viewport");
-    }
-
-    // Get the HTML content of the page
-    const htmlContent = document.documentElement.outerHTML;
-
-    // Format user interactions for better readability
-    const formattedInteractions = userInteractions.map((interaction) => ({
-      ...interaction,
-      timestamp: interaction.timestamp,
-    }));
-
-    // Create a context summary of recent interactions
-    const recentInteractions = formattedInteractions.slice(-5);
-    const interactionsSummary = JSON.stringify(recentInteractions, null, 2);
-
-    // Send message with context to Gemini
-    const result = await chat.sendMessage([
-      `User Message: ${message}
-
-Recent User Interactions:
-${interactionsSummary}
-
-Total Interactions: ${userInteractions.length}
-Current Page URL: ${window.location.href}
-Viewport Size: ${window.innerWidth}x${window.innerHeight}
-
-Page HTML:
-${htmlContent}`,
-      {
-        inlineData: {
-          data: base64Image,
-          mimeType: "image/png",
-        },
-      },
-    ]);
-
-    await handleAIResponse(result.response);
-  } catch (error) {
-    console.error("Error:", error);
-    addMessage("Sorry, I encountered an error processing your request.", false);
-  }
-}
+// Initialize chat immediately
+initChat();
 
 // Generic event tracking setup
 document.addEventListener("DOMContentLoaded", () => {
@@ -503,84 +596,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Initialize chat when the page loads
-async function initChat() {
-  try {
-    chat = model.startChat({
-      history: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: `
-                You are an AI assistant helping users navigate a web application. 
-
-                GOAL:
-                - Help users achieve their requests by utilizing all available information:
-                  * Screenshots of the current page state
-                  * HTML structure and content
-                  * User interaction history
-                  * Knowledge sources and documentation
-                - Guide users step by step through their tasks using visual aids and clear instructions
-                - Use highlighting tools when needed to point users to specific elements
-                - Ensure users successfully complete their intended actions
-                - Adapt guidance based on user interactions and feedback
-
-                TOOLS:
-                ${functionDefinitions
-                  .map(
-                    (fn) => `
-                ${fn.name}:
-                - Description: ${fn.description}
-                - Required parameters: ${fn.parameters.required.join(", ")}
-                `
-                  )
-                  .join("\n")}
-                
-                RULES:
-                - Always be concise and direct in your responses.
-                - Break the problem into smaller steps and explain to the user what steps need to follow
-                - Always highlight to the user where to press/navigate by using highlightPageElement
-                - Monitor user interactions after highlighting:
-                  * When user clicks the correct element, remove current highlight and highlight the next element in sequence
-                  * If the user clicks elsewhere, guide them back to the highlighted element
-                - Each step should follow this pattern:
-                  1. Highlight the target element
-                  2. Wait for correct interaction
-                  3. Remove current highlight and immediately highlight next element
-                  4. Repeat until task is complete
-                - Keep track of the current highlighted element and user's progress
-
-                EXAMPLE RESPONSE PATTERN:
-                When user clicks the correct element, respond like this:
-                "Great! You've clicked the correct button. Now let's move to the next step."
-                [Call removeActiveHighlight]
-                [Call highlightPageElement for the next element]
-                "Now click here to continue..."
-
-                Or when moving between sections:
-                "Perfect! Now let's go to the form section."
-                [Call removeActiveHighlight]
-                [Call highlightPageElement for the 'Buy now' link]
-                "Click 'Buy Now' to see the application form."
-
-                Remember to chain the remove and highlight commands together when transitioning between steps or remove the highligt step if it's not needed anymore.
-                `,
-            },
-          ],
-        },
-      ],
-      tools: [{ functionDeclarations: functionDefinitions }],
-    });
-    console.log("Chat initialized successfully");
-  } catch (error) {
-    console.error("Error initializing chat:", error);
-  }
-}
-
-// Initialize chat immediately
-initChat();
-
 async function captureViewport() {
   try {
     const canvas = await html2canvas(document.documentElement);
@@ -613,7 +628,7 @@ function addMessage(message, isUser) {
   const header = document.createElement("div");
   header.style.fontSize = "0.8em";
   header.style.marginBottom = "5px";
-  header.textContent = `${isUser ? "You" : "Gemini"} - ${timestamp}`;
+  header.textContent = `${isUser ? "You" : "Kip"} - ${timestamp}`;
   messageDiv.appendChild(header);
 
   // Add message content
