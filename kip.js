@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import html2canvas from 'html2canvas';
 import { config } from './config.js';
+import { chatStyles } from './kip-styles.js';
 
 // Initialize Gemini with function calling
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -190,16 +191,22 @@ const CURSOR_IMAGE = `<svg
 const createChatContainer = () => {
   const chatContainer = document.createElement('div');
   chatContainer.innerHTML = `
-    <div id="chat-container">
-      <div id="chat-messages"></div>
-      <div id="chat-input-container">
+    <div id="chat-container" style="${chatStyles.chatContainer}">
+      <div id="chat-messages" style="${chatStyles.chatMessages}"></div>
+      <div id="chat-input-container" style="${chatStyles.chatInputContainer}">
         <input 
           type="text"
           id="chat-input"
           placeholder="Type your message..."
           value="How do I send my resume?"
+          style="${chatStyles.chatInput}"
         />
-        <button id="send-button">Send</button>
+        <button 
+          id="send-button" 
+          style="${chatStyles.sendButton}"
+          onmouseover="this.style.background='#0056b3'" 
+          onmouseout="this.style.background='#007bff'"
+        >Send</button>
       </div>
     </div>
   `;
@@ -225,13 +232,13 @@ const createChatContainer = () => {
   return chatElements;
 };
 
-// Helper function to add messages to the chat
+// Update addMessage function to use inline styles
 function addMessage(message, isUser) {
   if (!chatElements?.messages) return;
 
   const messageDiv = document.createElement('div');
-  messageDiv.classList.add('message');
-  messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+  messageDiv.style.cssText =
+    chatStyles.message + (isUser ? chatStyles.userMessage : chatStyles.botMessage);
 
   // Add timestamp
   const timestamp = new Date().toLocaleTimeString([], {
