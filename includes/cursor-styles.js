@@ -1,5 +1,5 @@
 export const cursorStyles = {
-  floatingHand: `
+  cursor: `
     width: 32px;
     height: 32px;
     color: #000;
@@ -10,6 +10,18 @@ export const cursorStyles = {
   floatingPoint: `
     transform-origin: center;
     animation: pulseAnimation 2s ease-in-out infinite;
+  `,
+  keyframes: `
+    @keyframes floatAnimation {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    @keyframes pulseAnimation {
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.8; }
+    }
   `,
 };
 

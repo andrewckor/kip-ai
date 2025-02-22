@@ -49,29 +49,22 @@ const functionDefinitions = [
 // Function implementation
 function createFloatingCursor(x, y) {
   // Remove any existing floating cursor
-  const existingCursor = document.querySelector('.floating-hand');
+  const existingCursor = document.querySelector('#cursor');
   if (existingCursor) {
     existingCursor.remove();
   }
 
   // Create the floating cursor element
   const cursor = document.createElement('div');
-  cursor.className = 'floating-hand';
   cursor.innerHTML = CURSOR_IMAGE;
-  cursor.style.cssText = cursorStyles.floatingHand;
 
   // Position the cursor
   cursor.style.left = `${x}px`;
   cursor.style.top = `${y}px`;
+  cursor.style.position = `fixed`;
 
   // Add to document
   document.body.appendChild(cursor);
-
-  // Apply floating point style to the floating-point element
-  const floatingPoint = cursor.querySelector('.floating-point');
-  if (floatingPoint) {
-    floatingPoint.style.cssText = cursorStyles.floatingPoint;
-  }
 
   return cursor;
 }
@@ -221,32 +214,42 @@ const createChatContainer = () => {
   return chatElements;
 };
 
-// Update addMessage function to use inline styles
+// Store messages array
+let messages = [];
+
+// Update message rendering function
+function renderMessages() {
+  if (!chatElements?.messages) return;
+
+  chatElements.messages.innerHTML = messages
+    .map(
+      msg => `
+    <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}">
+      <div style="font-size: 0.8em; margin-bottom: 5px">
+        ${msg.isUser ? 'You' : 'Kip'} - ${msg.timestamp}
+      </div>
+      <div>${msg.content}</div>
+    </div>
+  `
+    )
+    .join('');
+
+  chatElements.messages.scrollTop = chatElements.messages.scrollHeight;
+}
+
 function addMessage(message, isUser) {
   if (!chatElements?.messages) return;
 
-  const messageDiv = document.createElement('div');
-  messageDiv.style.cssText =
-    chatStyles.message + (isUser ? chatStyles.userMessage : chatStyles.botMessage);
-
-  // Add timestamp
-  const timestamp = new Date().toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
+  messages.push({
+    content: message,
+    isUser,
+    timestamp: new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
   });
-  const header = document.createElement('div');
-  header.style.fontSize = '0.8em';
-  header.style.marginBottom = '5px';
-  header.textContent = `${isUser ? 'You' : 'Kip'} - ${timestamp}`;
-  messageDiv.appendChild(header);
 
-  // Add message content
-  const content = document.createElement('div');
-  content.textContent = message;
-  messageDiv.appendChild(content);
-
-  chatElements.messages.appendChild(messageDiv);
-  chatElements.messages.scrollTop = chatElements.messages.scrollHeight;
+  renderMessages();
 }
 
 // Update handleSendMessage function

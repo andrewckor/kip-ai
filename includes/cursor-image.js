@@ -1,12 +1,17 @@
+import { cursorStyles } from './cursor-styles.js';
+
 export const CURSOR_IMAGE = `<svg
       id="cursor"
-      class="floating-hand"
+      style="${cursorStyles.cursor}"
       width="394"
       height="420"
       viewBox="0 0 394 420"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
+      <style>
+        ${cursorStyles.keyframes}
+      </style>
       <rect x="131.25" width="52.5" height="393.75" fill="white" />
       <rect x="78.75" y="183.75" width="26.25" height="131.25" fill="white" />
       <rect x="262.5" y="367.5" width="26.25" height="26.25" fill="white" />
@@ -21,12 +26,13 @@ export const CURSOR_IMAGE = `<svg
       <rect x="315" y="341.25" width="26.25" height="78.75" fill="white" />
       <rect x="288.75" y="393.75" width="26.25" height="26.25" fill="white" />
       <rect
+        id="floating-point"
+        style="${cursorStyles.floatingPoint}"
         x="131.25"
         y="393.75"
         width="131.25"
         height="26.25"
         fill="white"
-        class="floating-point"
       />
       <rect x="131.25" y="367.5" width="26.25" height="26.25" fill="white" />
       <rect x="105" y="341.25" width="26.25" height="26.25" fill="white" />
