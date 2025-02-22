@@ -1,4 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import html2canvas from "html2canvas";
+import { config } from "./config.js";
 
 // Initialize canvas
 const canvas = document.getElementById("myCanvas");
@@ -8,123 +10,118 @@ let lastX = 0;
 let lastY = 0;
 
 // Define available functions for Gemini
-const functionDefinitions = [
-  {
-    name: "highlightPageElement",
-    description:
-      "Highlight an element on the page to guide the user where to click or interact",
-    parameters: {
-      type: "object",
-      properties: {
-        selector: {
-          type: "string",
-          description:
-            "The CSS selector or ID of the element to highlight (e.g., '#email' or '.submit-button')",
+const functionDefinitions = [{
+        name: "highlightPageElement",
+        description: "Highlight an element on the page to guide the user where to click or interact",
+        parameters: {
+            type: "object",
+            properties: {
+                selector: {
+                    type: "string",
+                    description: "The CSS selector or ID of the element to highlight (e.g., '#email' or '.submit-button')",
+                },
+            },
+            required: ["selector"],
         },
-      },
-      required: ["selector"],
     },
-  },
-  {
-    name: "removeActiveHighlight",
-    description:
-      "Remove any active highlight from the page when the user moved to next step",
-    parameters: {
-      type: "object",
-      properties: {
-        selector: {
-          type: "string",
-          description:
-            "The selector parameter is ignored but required by the API for consistency",
+    {
+        name: "removeActiveHighlight",
+        description: "Remove any active highlight from the page when the user moved to next step",
+        parameters: {
+            type: "object",
+            properties: {
+                selector: {
+                    type: "string",
+                    description: "The selector parameter is ignored but required by the API for consistency",
+                },
+            },
+            required: ["selector"],
         },
-      },
-      required: ["selector"],
     },
-  },
 ];
 
 // Function implementation
 function createFloatingCursor(x, y) {
-  // Remove any existing floating cursor
-  const existingCursor = document.querySelector(".floating-hand");
-  if (existingCursor) {
-    existingCursor.remove();
-  }
+    // Remove any existing floating cursor
+    const existingCursor = document.querySelector(".floating-hand");
+    if (existingCursor) {
+        existingCursor.remove();
+    }
 
-  // Create the floating cursor element
-  const cursor = document.createElement("div");
-  cursor.className = "floating-hand";
-  cursor.innerHTML = CURSOR_IMAGE;
+    // Create the floating cursor element
+    const cursor = document.createElement("div");
+    cursor.className = "floating-hand";
+    cursor.innerHTML = CURSOR_IMAGE;
 
-  // Position the cursor
-  cursor.style.left = `${x}px`;
-  cursor.style.top = `${y}px`;
+    // Position the cursor
+    cursor.style.left = `${x}px`;
+    cursor.style.top = `${y}px`;
 
-  // Add to document
-  document.body.appendChild(cursor);
+    // Add to document
+    document.body.appendChild(cursor);
 
-  return cursor;
+    return cursor;
 }
 
 // Keep track of currently highlighted element
 let currentlyHighlightedElement = null;
 
 function removeActiveHighlight() {
-  // Remove cursor
-  const cursor = document.querySelector(".floating-hand");
-  if (cursor) {
-    cursor.remove();
-  }
+    // Remove cursor
+    const cursor = document.querySelector(".floating-hand");
+    if (cursor) {
+        cursor.remove();
+    }
 
-  // Remove highlight from current element
-  if (currentlyHighlightedElement) {
-    currentlyHighlightedElement.style.backgroundColor = "";
-    currentlyHighlightedElement.style.outline = "";
-    currentlyHighlightedElement.style.transition = "";
-    currentlyHighlightedElement = null;
-  }
+    // Remove highlight from current element
+    if (currentlyHighlightedElement) {
+        currentlyHighlightedElement.style.backgroundColor = "";
+        currentlyHighlightedElement.style.outline = "";
+        currentlyHighlightedElement.style.transition = "";
+        currentlyHighlightedElement = null;
+    }
 
-  shouldKipObserveInteractions = false;
-  return "Highlight and cursor removed";
+    shouldKipObserveInteractions = false;
+    return "Highlight and cursor removed";
 }
 
 function highlightPageElement(selector) {
-  const element = document.querySelector(selector);
-  if (element) {
-    // Remove any existing highlight first
-    removeActiveHighlight();
+    const element = document.querySelector(selector);
+    if (element) {
+        // Remove any existing highlight first
+        removeActiveHighlight();
 
-    const rect = element.getBoundingClientRect();
-    const coordinates = {
-      x: rect.left + window.scrollX,
-      y: rect.top + window.scrollY,
-      width: rect.width,
-      height: rect.height,
-      element: selector,
-    };
+        const rect = element.getBoundingClientRect();
+        const coordinates = {
+            x: rect.left + window.scrollX,
+            y: rect.top + window.scrollY,
+            width: rect.width,
+            height: rect.height,
+            element: selector,
+        };
 
-    // Highlight the element
-    element.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
-    element.style.outline = "2px solid red";
-    element.style.transition = "all 0.3s ease-in-out";
-    currentlyHighlightedElement = element;
+        // Highlight the element
+        element.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
+        element.style.outline = "2px solid red";
+        element.style.transition = "all 0.3s ease-in-out";
+        currentlyHighlightedElement = element;
 
-    // Create floating cursor below the element
-    const cursorX = rect.left + window.scrollX + rect.width / 2 - 16; // Center horizontally
-    const cursorY = rect.bottom + window.scrollY + 10; // 10px below the element
-    createFloatingCursor(cursorX, cursorY);
+        // Create floating cursor below the element
+        const cursorX = rect.left + window.scrollX + rect.width / 2 - 16; // Center horizontally
+        const cursorY = rect.bottom + window.scrollY + 10; // 10px below the element
+        createFloatingCursor(cursorX, cursorY);
 
-    shouldKipObserveInteractions = true;
-    return JSON.stringify(coordinates, null, 2);
-  }
-  return `Element with selector "${selector}" not found`;
+        shouldKipObserveInteractions = true;
+        return JSON.stringify(coordinates, null, 2);
+    }
+    return `Element with selector "${selector}" not found`;
 }
 
 // Set canvas size
 function resizeCanvas() {
-  const container = document.getElementById("canvas-container");
-  canvas.width = container.clientWidth - 40; // Adjust for padding
-  canvas.height = container.clientHeight - 40;
+    const container = document.getElementById("canvas-container");
+    canvas.width = container.clientWidth - 40; // Adjust for padding
+    canvas.height = container.clientHeight - 40;
 }
 
 // Initial resize
@@ -138,26 +135,26 @@ canvas.addEventListener("mouseup", stopDrawing);
 canvas.addEventListener("mouseout", stopDrawing);
 
 function startDrawing(e) {
-  isDrawing = true;
-  [lastX, lastY] = [e.offsetX, e.offsetY];
+    isDrawing = true;
+    [lastX, lastY] = [e.offsetX, e.offsetY];
 }
 
 function draw(e) {
-  if (!isDrawing) return;
+    if (!isDrawing) return;
 
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 2;
-  ctx.lineCap = "round";
-  ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.stroke();
 
-  [lastX, lastY] = [e.offsetX, e.offsetY];
+    [lastX, lastY] = [e.offsetX, e.offsetY];
 }
 
 function stopDrawing() {
-  isDrawing = false;
+    isDrawing = false;
 }
 
 // Chat functionality
@@ -166,7 +163,7 @@ const chatInput = document.getElementById("chat-input");
 const sendButton = document.getElementById("send-button");
 
 // Initialize Gemini with function calling
-const genAI = new GoogleGenerativeAI(window.config.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 const userInteractions = [];
 let shouldKipObserveInteractions = false;
@@ -242,14 +239,12 @@ const CURSOR_IMAGE = `<svg
 let chatHistory = [];
 
 async function initChat() {
-  try {
-    chat = model.startChat({
-      history: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: `
+    try {
+        chat = model.startChat({
+                    history: [{
+                                role: "user",
+                                parts: [{
+                                            text: `
                 You are an AI assistant helping users navigate a web application. 
 
                 GOAL:
