@@ -216,13 +216,13 @@
         document.querySelector('#about-section').classList.add('active');
         document.querySelector('[data-section="about"]').classList.add('active');
 
-        navLinks.forEach((link) => {
-          link.addEventListener('click', (e) => {
+        navLinks.forEach(link => {
+          link.addEventListener('click', e => {
             e.preventDefault();
 
             // Remove active class from all links and sections
-            navLinks.forEach((l) => l.classList.remove('active'));
-            sections.forEach((s) => s.classList.remove('active'));
+            navLinks.forEach(l => l.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
 
             // Add active class to clicked link and corresponding section
             const sectionId = link.getAttribute('data-section');
@@ -232,6 +232,6 @@
         });
       });
     </script>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="kip.js"></script>
   </body>
 </html>
