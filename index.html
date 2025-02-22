@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gemini Canvas Chat</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "/node_modules/@google/generative-ai/dist/generative-ai.mjs"
+        }
+      }
+    </script>
     <style>
       body {
         margin: 0;
@@ -104,7 +111,7 @@
           />
         </div>
 
-        <div style="margin-bottom: 15px">
+        <div style="margin-bottom: 15px" class="email-address-input">
           <label for="email">Email Address:</label><br />
           <input
             type="email"
@@ -234,7 +241,8 @@
       </div>
     </div>
 
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <script src="app.js"></script>
+    <script src="/node_modules/html2canvas/dist/html2canvas.min.js"></script>
+    <script src="config.js"></script>
+    <script type="module" src="app.js"></script>
   </body>
 </html>

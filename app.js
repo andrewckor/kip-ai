@@ -1,9 +1,50 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 // Initialize canvas
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
+
+// Define available functions for Gemini
+const functionDefinitions = [
+  {
+    name: "getElementCoordinates",
+    description: "Get the coordinates of an element on the page and log them",
+    parameters: {
+      type: "object",
+      properties: {
+        selector: {
+          type: "string",
+          description:
+            "The CSS selector or ID of the element (e.g., '#email' or '.email-address-input')",
+        },
+      },
+      required: ["selector"],
+    },
+  },
+];
+
+// Function implementation
+function getElementCoordinates(selector) {
+  const element = document.querySelector(selector);
+  if (element) {
+    const rect = element.getBoundingClientRect();
+    const coordinates = {
+      x: rect.left + window.scrollX,
+      y: rect.top + window.scrollY,
+      width: rect.width,
+      height: rect.height,
+      element: selector,
+    };
+    const theElement = document.querySelector(selector);
+    console.log("Element Coordinates:", theElement);
+    theElement.style.backgroundColor = "red";
+    return JSON.stringify(coordinates, null, 2);
+  }
+  return `Element with selector "${selector}" not found`;
+}
 
 // Set canvas size
 function resizeCanvas() {
@@ -50,54 +91,42 @@ const chatMessages = document.getElementById("chat-messages");
 const chatInput = document.getElementById("chat-input");
 const sendButton = document.getElementById("send-button");
 
-// Get API key from environment variable
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
-let apiKey = null;
+// Initialize Gemini with function calling
+const genAI = new GoogleGenerativeAI(window.config.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+let chat;
 
-// Fetch API key from server
-async function initializeAPI() {
+// Initialize chat when the page loads
+async function initChat() {
   try {
-    const response = await fetch("/api/config");
-    const config = await response.json();
-    apiKey = config.apiKey;
+    chat = model.startChat({
+      tools: [{ functionDeclarations: functionDefinitions }],
+    });
+    console.log("Chat initialized successfully");
   } catch (error) {
-    console.error("Error fetching API key:", error);
+    console.error("Error initializing chat:", error);
   }
 }
 
-// Initialize API key
-initializeAPI();
+// Initialize chat immediately
+initChat();
 
-async function sendMessageToGemini(message) {
-  if (!apiKey) {
-    return "Error: API key not initialized";
-  }
-
+async function captureViewport() {
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: message,
-              },
-            ],
-          },
-        ],
-      }),
+    const canvas = await html2canvas(document.documentElement);
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64Data = reader.result.split(",")[1];
+          resolve(base64Data);
+        };
+        reader.readAsDataURL(blob);
+      }, "image/png");
     });
-
-    const data = await response.json();
-    return data.candidates[0].content.parts[0].text;
   } catch (error) {
-    console.error("Error:", error);
-    return "Sorry, I encountered an error processing your request.";
+    console.error("Error capturing viewport:", error);
+    return null;
   }
 }
 
@@ -105,9 +134,34 @@ function addMessage(message, isUser) {
   const messageDiv = document.createElement("div");
   messageDiv.classList.add("message");
   messageDiv.classList.add(isUser ? "user-message" : "bot-message");
-  messageDiv.textContent = message;
+
+  // Add timestamp
+  const timestamp = new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const header = document.createElement("div");
+  header.style.fontSize = "0.8em";
+  header.style.marginBottom = "5px";
+  header.textContent = `${isUser ? "You" : "Gemini"} - ${timestamp}`;
+  messageDiv.appendChild(header);
+
+  // Add message content
+  const content = document.createElement("div");
+  content.textContent = message;
+  messageDiv.appendChild(content);
+
   chatMessages.appendChild(messageDiv);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function handleFunctionCall(functionCall) {
+  const { name, args } = functionCall;
+
+  if (name === "getElementCoordinates") {
+    return getElementCoordinates(args.selector);
+  }
+  return `Function ${name} not implemented`;
 }
 
 async function handleSendMessage() {
@@ -118,12 +172,50 @@ async function handleSendMessage() {
   addMessage(message, true);
   chatInput.value = "";
 
-  // Get canvas data if needed
-  const canvasData = canvas.toDataURL();
+  try {
+    // Capture the viewport
+    const base64Image = await captureViewport();
 
-  // Send message to Gemini API
-  const response = await sendMessageToGemini(message);
-  addMessage(response, false);
+    if (!base64Image) {
+      throw new Error("Failed to capture viewport");
+    }
+
+    // Get the HTML content of the page
+    const htmlContent = document.documentElement.outerHTML;
+
+    // Send message, image, and HTML to Gemini
+    const result = await chat.sendMessage([
+      `User Message: ${message}\n\nPage HTML:\n${htmlContent}`,
+      {
+        inlineData: {
+          data: base64Image,
+          mimeType: "image/png",
+        },
+      },
+    ]);
+
+    const response = await result.response;
+
+    // Handle function calls if any
+    if (response.candidates[0].content.parts[0].functionCall) {
+      const functionCall = response.candidates[0].content.parts[0].functionCall;
+      const functionResponse = await handleFunctionCall(functionCall);
+
+      // Send function response back to chat
+      const followUpResult = await chat.sendMessage(
+        `Function Response: ${functionResponse}`
+      );
+      const followUpText = followUpResult.response.text();
+      addMessage(followUpText, false);
+    } else {
+      // Regular text response
+      const text = response.text();
+      addMessage(text, false);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    addMessage("Sorry, I encountered an error processing your request.", false);
+  }
 }
 
 sendButton.addEventListener("click", handleSendMessage);
@@ -132,3 +224,6 @@ chatInput.addEventListener("keypress", (e) => {
     handleSendMessage();
   }
 });
+
+// Export any necessary functions or variables
+export {};
