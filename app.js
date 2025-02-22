@@ -376,7 +376,8 @@ function trackInteraction(type, details) {
       null,
       2
     )}
-    If this isn't what user supposed to do, advise them through the chat. And do not remove the active highlight.`;
+	- If this isn't what user supposed to do, advise them through the chat. And do not remove the active highlight
+	- If the user did the correct action then remove the active highlight.`;
 
     // Add clean interaction message to chat history
     chatHistory.push({ role: 'user', parts: [{ text: interactionMessage }] });
