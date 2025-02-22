@@ -25,6 +25,43 @@
         padding: 20px;
       }
 
+      /* Navigation Styles */
+      .nav-link {
+        text-decoration: none;
+        color: #333;
+        padding: 8px 16px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+      }
+
+      .nav-link:hover {
+        background-color: #f0f0f0;
+      }
+
+      .nav-link.active {
+        background-color: #007bff;
+        color: white;
+      }
+
+      /* Content Section Styles */
+      .content-section {
+        display: none;
+        animation: fadeIn 0.3s ease-in;
+      }
+
+      .content-section.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
       #myCanvas {
         border: 1px solid #ccc;
         background: white;
@@ -92,157 +129,249 @@
   </head>
   <body>
     <div id="canvas-container">
-      <form id="job-application-form" style="margin-bottom: 20px">
-        <h2 style="color: #333; margin-bottom: 20px">Job Application Form</h2>
+      <nav style="margin-bottom: 30px">
+        <ul
+          style="
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            gap: 20px;
+          "
+        >
+          <li>
+            <a href="#" class="nav-link" data-section="about">About Us</a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-section="positions"
+              >Open Positions</a
+            >
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-section="apply">Apply Now</a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-section="contact">Contact</a>
+          </li>
+        </ul>
+      </nav>
 
-        <!-- Text Fields -->
-        <div style="margin-bottom: 15px">
-          <label for="full-name">Full Name:</label><br />
-          <input
-            type="text"
-            id="full-name"
-            style="
-              width: 100%;
-              padding: 8px;
-              margin-top: 5px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            "
-          />
+      <div id="content-sections">
+        <div id="about-section" class="content-section">
+          <h2>About Our Company</h2>
+          <p>
+            We are a dynamic and innovative company looking for talented
+            individuals to join our team.
+          </p>
         </div>
 
-        <div style="margin-bottom: 15px" class="email-address-input">
-          <label for="email">Email Address:</label><br />
-          <input
-            type="email"
-            id="email"
-            style="
-              width: 100%;
-              padding: 8px;
-              margin-top: 5px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            "
-          />
+        <div id="positions-section" class="content-section">
+          <h2>Current Open Positions</h2>
+          <ul>
+            <li>Frontend Developer</li>
+            <li>Backend Developer</li>
+            <li>Full Stack Developer</li>
+            <li>UI/UX Designer</li>
+          </ul>
         </div>
 
-        <div style="margin-bottom: 15px">
-          <label for="phone">Phone Number:</label><br />
-          <input
-            type="tel"
-            id="phone"
-            style="
-              width: 100%;
-              padding: 8px;
-              margin-top: 5px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            "
-          />
+        <div id="apply-section" class="content-section">
+          <form id="job-application-form" style="margin-bottom: 20px">
+            <h2 style="color: #333; margin-bottom: 20px">
+              Job Application Form
+            </h2>
+
+            <!-- Text Fields -->
+            <div style="margin-bottom: 15px">
+              <label for="full-name">Full Name:</label><br />
+              <input
+                type="text"
+                id="full-name"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  margin-top: 5px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              />
+            </div>
+
+            <div style="margin-bottom: 15px" class="email-address-input">
+              <label for="email">Email Address:</label><br />
+              <input
+                type="email"
+                id="email"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  margin-top: 5px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              />
+            </div>
+
+            <div style="margin-bottom: 15px">
+              <label for="phone">Phone Number:</label><br />
+              <input
+                type="tel"
+                id="phone"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  margin-top: 5px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              />
+            </div>
+
+            <div style="margin-bottom: 15px">
+              <label for="portfolio">Portfolio URL:</label><br />
+              <input
+                type="url"
+                id="portfolio"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  margin-top: 5px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              />
+            </div>
+
+            <div style="margin-bottom: 15px">
+              <label for="linkedin">LinkedIn Profile:</label><br />
+              <input
+                type="url"
+                id="linkedin"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  margin-top: 5px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              />
+            </div>
+
+            <!-- Dropdowns -->
+            <div style="margin-bottom: 15px">
+              <label for="position">Position Applied For:</label><br />
+              <select
+                id="position"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  margin-top: 5px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              >
+                <option value="">Select Position</option>
+                <option value="frontend">Frontend Developer</option>
+                <option value="backend">Backend Developer</option>
+                <option value="fullstack">Full Stack Developer</option>
+                <option value="ui">UI/UX Designer</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom: 15px">
+              <label for="experience">Years of Experience:</label><br />
+              <select
+                id="experience"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  margin-top: 5px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              >
+                <option value="">Select Experience</option>
+                <option value="entry">0-2 years</option>
+                <option value="mid">3-5 years</option>
+                <option value="senior">6+ years</option>
+              </select>
+            </div>
+
+            <div style="margin-bottom: 15px">
+              <label for="availability">Availability:</label><br />
+              <select
+                id="availability"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  margin-top: 5px;
+                  border: 1px solid #ddd;
+                  border-radius: 4px;
+                "
+              >
+                <option value="">Select Availability</option>
+                <option value="immediate">Immediate</option>
+                <option value="2weeks">2 weeks notice</option>
+                <option value="1month">1 month notice</option>
+              </select>
+            </div>
+          </form>
         </div>
 
-        <div style="margin-bottom: 15px">
-          <label for="portfolio">Portfolio URL:</label><br />
-          <input
-            type="url"
-            id="portfolio"
-            style="
-              width: 100%;
-              padding: 8px;
-              margin-top: 5px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            "
-          />
+        <div id="contact-section" class="content-section">
+          <h2>Contact Us</h2>
+          <p>Have questions? Reach out to our HR team at careers@company.com</p>
         </div>
+      </div>
 
-        <div style="margin-bottom: 15px">
-          <label for="linkedin">LinkedIn Profile:</label><br />
-          <input
-            type="url"
-            id="linkedin"
-            style="
-              width: 100%;
-              padding: 8px;
-              margin-top: 5px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            "
-          />
-        </div>
-
-        <!-- Dropdowns -->
-        <div style="margin-bottom: 15px">
-          <label for="position">Position Applied For:</label><br />
-          <select
-            id="position"
-            style="
-              width: 100%;
-              padding: 8px;
-              margin-top: 5px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            "
-          >
-            <option value="">Select Position</option>
-            <option value="frontend">Frontend Developer</option>
-            <option value="backend">Backend Developer</option>
-            <option value="fullstack">Full Stack Developer</option>
-            <option value="ui">UI/UX Designer</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 15px">
-          <label for="experience">Years of Experience:</label><br />
-          <select
-            id="experience"
-            style="
-              width: 100%;
-              padding: 8px;
-              margin-top: 5px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            "
-          >
-            <option value="">Select Experience</option>
-            <option value="entry">0-2 years</option>
-            <option value="mid">3-5 years</option>
-            <option value="senior">6+ years</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom: 15px">
-          <label for="availability">Availability:</label><br />
-          <select
-            id="availability"
-            style="
-              width: 100%;
-              padding: 8px;
-              margin-top: 5px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            "
-          >
-            <option value="">Select Availability</option>
-            <option value="immediate">Immediate</option>
-            <option value="2weeks">2 weeks notice</option>
-            <option value="1month">1 month notice</option>
-          </select>
-        </div>
-      </form>
       <canvas id="myCanvas"></canvas>
     </div>
 
     <div id="chat-container">
       <div id="chat-messages"></div>
       <div id="chat-input-container">
-        <input type="text" id="chat-input" placeholder="Type your message..." />
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Type your message..."
+          value="How do I send my resume?"
+        />
         <button id="send-button">Send</button>
       </div>
     </div>
 
     <script src="/node_modules/html2canvas/dist/html2canvas.min.js"></script>
     <script src="config.js"></script>
+    <script>
+      // Navigation handling
+      document.addEventListener("DOMContentLoaded", function () {
+        const navLinks = document.querySelectorAll(".nav-link");
+        const sections = document.querySelectorAll(".content-section");
+
+        // Show About section by default
+        document.querySelector("#about-section").classList.add("active");
+        document
+          .querySelector('[data-section="about"]')
+          .classList.add("active");
+
+        navLinks.forEach((link) => {
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            // Remove active class from all links and sections
+            navLinks.forEach((l) => l.classList.remove("active"));
+            sections.forEach((s) => s.classList.remove("active"));
+
+            // Add active class to clicked link and corresponding section
+            const sectionId = link.getAttribute("data-section");
+            link.classList.add("active");
+            document
+              .querySelector(`#${sectionId}-section`)
+              .classList.add("active");
+          });
+        });
+      });
+    </script>
     <script type="module" src="app.js"></script>
   </body>
 </html>

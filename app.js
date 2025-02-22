@@ -10,15 +10,16 @@ let lastY = 0;
 // Define available functions for Gemini
 const functionDefinitions = [
   {
-    name: "getElementCoordinates",
-    description: "Get the coordinates of an element on the page and log them",
+    name: "highlightPageElement",
+    description:
+      "Highlight an element on the page to guide the user where to click or interact",
     parameters: {
       type: "object",
       properties: {
         selector: {
           type: "string",
           description:
-            "The CSS selector or ID of the element (e.g., '#email' or '.email-address-input')",
+            "The CSS selector or ID of the element to highlight (e.g., '#email' or '.submit-button')",
         },
       },
       required: ["selector"],
@@ -27,7 +28,7 @@ const functionDefinitions = [
 ];
 
 // Function implementation
-function getElementCoordinates(selector) {
+function highlightPageElement(selector) {
   const element = document.querySelector(selector);
   if (element) {
     const rect = element.getBoundingClientRect();
@@ -94,12 +95,180 @@ const sendButton = document.getElementById("send-button");
 // Initialize Gemini with function calling
 const genAI = new GoogleGenerativeAI(window.config.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+const userInteractions = [];
 let chat;
+
+// Function to add interaction to the array
+function trackInteraction(type, details) {
+  userInteractions.push({
+    type,
+    details,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// Generic event tracking setup
+document.addEventListener("DOMContentLoaded", () => {
+  // Track all clicks
+  window.addEventListener("click", (e) => {
+    trackInteraction("click", {
+      target: {
+        tagName: e.target.tagName,
+        id: e.target.id,
+        className: e.target.className,
+        text: e.target.textContent?.slice(0, 100), // Limit text length
+        href: e.target.href,
+      },
+      position: {
+        x: e.clientX,
+        y: e.clientY,
+      },
+    });
+  });
+
+  // Track all input interactions
+  window.addEventListener("input", (e) => {
+    if (e.target.type !== "password") {
+      trackInteraction("input", {
+        element: {
+          type: e.target.type,
+          id: e.target.id,
+          name: e.target.name,
+        },
+        value: e.target.value,
+      });
+    }
+  });
+
+  // Track form submissions
+  window.addEventListener("submit", (e) => {
+    const formData = new FormData(e.target);
+    const safeFormData = {};
+
+    for (let [key, value] of formData.entries()) {
+      safeFormData[key] = key.includes("password") ? "[REDACTED]" : value;
+    }
+
+    trackInteraction("form_submission", {
+      formId: e.target.id,
+      data: safeFormData,
+    });
+  });
+
+  // Track scroll with debouncing
+  let scrollTimeout;
+  window.addEventListener("scroll", () => {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      trackInteraction("scroll", {
+        position: {
+          x: window.scrollX,
+          y: window.scrollY,
+        },
+        percentage: {
+          vertical:
+            (window.scrollY /
+              (document.documentElement.scrollHeight - window.innerHeight)) *
+            100,
+          horizontal:
+            (window.scrollX /
+              (document.documentElement.scrollWidth - window.innerWidth)) *
+            100,
+        },
+      });
+    }, 150);
+  });
+
+  // Track window resize with debouncing
+  let resizeTimeout;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      trackInteraction("resize", {
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+        screen: {
+          width: window.screen.width,
+          height: window.screen.height,
+        },
+      });
+    }, 150);
+  });
+
+  // Track page visibility changes
+  document.addEventListener("visibilitychange", () => {
+    trackInteraction("visibility_change", {
+      state: document.visibilityState,
+    });
+  });
+
+  // Track user focus/blur on window
+  window.addEventListener("focus", () => {
+    trackInteraction("window_focus", {
+      state: "focused",
+    });
+  });
+
+  window.addEventListener("blur", () => {
+    trackInteraction("window_focus", {
+      state: "blurred",
+    });
+  });
+
+  // Track page load timing
+  window.addEventListener("load", () => {
+    const timing = window.performance.timing;
+    const navigationStart = timing.navigationStart;
+
+    trackInteraction("page_load_metrics", {
+      loadTime: timing.loadEventEnd - navigationStart,
+      domReady: timing.domContentLoadedEventEnd - navigationStart,
+      firstPaint: performance.getEntriesByType("paint")[0]?.startTime,
+      firstContentfulPaint: performance.getEntriesByType("paint")[1]?.startTime,
+    });
+  });
+
+  // Track when user leaves the page
+  window.addEventListener("beforeunload", () => {
+    trackInteraction("page_exit", {
+      totalInteractions: userInteractions.length,
+      timeOnPage: Date.now() - performance.timing.navigationStart,
+    });
+  });
+
+  // Track network status changes
+  window.addEventListener("online", () => {
+    trackInteraction("network_status", { status: "online" });
+  });
+
+  window.addEventListener("offline", () => {
+    trackInteraction("network_status", { status: "offline" });
+  });
+});
 
 // Initialize chat when the page loads
 async function initChat() {
   try {
     chat = model.startChat({
+      history: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `
+                You are an AI assistant helping users navigate a web application. 
+                You can see the current state of the page through screenshots, and you have access to highlightPageElement function to help locate elements. 
+                
+                RULES:
+                - Always be concise and direct in your responses.
+                - Always hightlight to the user where to press/navigate by using highlightPageElement
+                - Break the problem into smaller steps`,
+            },
+          ],
+        },
+      ],
       tools: [{ functionDeclarations: functionDefinitions }],
     });
     console.log("Chat initialized successfully");
@@ -158,8 +327,8 @@ function addMessage(message, isUser) {
 async function handleFunctionCall(functionCall) {
   const { name, args } = functionCall;
 
-  if (name === "getElementCoordinates") {
-    return getElementCoordinates(args.selector);
+  if (name === "highlightPageElement") {
+    return highlightPageElement(args.selector);
   }
   return `Function ${name} not implemented`;
 }
@@ -183,9 +352,29 @@ async function handleSendMessage() {
     // Get the HTML content of the page
     const htmlContent = document.documentElement.outerHTML;
 
-    // Send message, image, and HTML to Gemini
+    // Format user interactions for better readability
+    const formattedInteractions = userInteractions.map((interaction) => ({
+      ...interaction,
+      timestamp: new Date(interaction.timestamp).toLocaleTimeString(),
+    }));
+
+    // Create a context summary of recent interactions
+    const recentInteractions = formattedInteractions.slice(-5); // Get last 5 interactions
+    const interactionsSummary = JSON.stringify(recentInteractions, null, 2);
+
+    // Send message with context to Gemini
     const result = await chat.sendMessage([
-      `User Message: ${message}\n\nPage HTML:\n${htmlContent}`,
+      `User Message: ${message}
+
+Recent User Interactions:
+${interactionsSummary}
+
+Total Interactions: ${userInteractions.length}
+Current Page URL: ${window.location.href}
+Viewport Size: ${window.innerWidth}x${window.innerHeight}
+
+Page HTML:
+${htmlContent}`,
       {
         inlineData: {
           data: base64Image,
@@ -196,17 +385,23 @@ async function handleSendMessage() {
 
     const response = await result.response;
 
-    // Handle function calls if any
-    if (response.candidates[0].content.parts[0].functionCall) {
-      const functionCall = response.candidates[0].content.parts[0].functionCall;
-      const functionResponse = await handleFunctionCall(functionCall);
+    // Check all parts for function calls
+    const functionCalls = response.candidates[0].content.parts.filter(
+      (part) => part.functionCall
+    );
 
-      // Send function response back to chat
-      const followUpResult = await chat.sendMessage(
-        `Function Response: ${functionResponse}`
-      );
-      const followUpText = followUpResult.response.text();
-      addMessage(followUpText, false);
+    if (functionCalls.length > 0) {
+      // Handle all function calls sequentially
+      for (const part of functionCalls) {
+        const functionResponse = await handleFunctionCall(part.functionCall);
+
+        // Send function response back to chat
+        const followUpResult = await chat.sendMessage(
+          `Function Response: ${functionResponse}`
+        );
+        const followUpText = followUpResult.response.text();
+        addMessage(followUpText, false);
+      }
     } else {
       // Regular text response
       const text = response.text();
@@ -226,4 +421,4 @@ chatInput.addEventListener("keypress", (e) => {
 });
 
 // Export any necessary functions or variables
-export {};
+export { userInteractions };
