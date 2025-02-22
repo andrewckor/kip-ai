@@ -42,6 +42,7 @@ function highlightPageElement(selector) {
     const theElement = document.querySelector(selector);
     console.log("Element Coordinates:", theElement);
     theElement.style.backgroundColor = "red";
+    shouldKipObserveInteractions = true;
     return JSON.stringify(coordinates, null, 2);
   }
   return `Element with selector "${selector}" not found`;
@@ -96,15 +97,49 @@ const sendButton = document.getElementById("send-button");
 const genAI = new GoogleGenerativeAI(window.config.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 const userInteractions = [];
+let shouldKipObserveInteractions = false;
 let chat;
 
 // Function to add interaction to the array
 function trackInteraction(type, details) {
+  console.log({
+    type,
+    details,
+    timestamp: new Date().toISOString(),
+  });
   userInteractions.push({
     type,
     details,
     timestamp: new Date().toISOString(),
   });
+
+  // Notify AI if shouldKipObserveInteractions is true
+  if (shouldKipObserveInteractions && chat && type === "click") {
+    const latestInteraction = {
+      type,
+      details,
+      timestamp: new Date().toISOString(),
+    };
+
+    chat
+      .sendMessage(
+        `
+        User performed click action: ${JSON.stringify(
+          latestInteraction,
+          null,
+          2
+        )}
+        If this isn't what user supposed to do, advise them through the chat.
+        `
+      )
+      .then((result) => {
+        const response = result.response.text();
+        addMessage(response, false);
+      })
+      .catch((error) =>
+        console.error("Error notifying AI of interaction:", error)
+      );
+  }
 }
 
 // Generic event tracking setup
@@ -263,8 +298,10 @@ async function initChat() {
                 
                 RULES:
                 - Always be concise and direct in your responses.
+                - Break the problem into smaller steps and explain to the user what steps need to follow
                 - Always hightlight to the user where to press/navigate by using highlightPageElement
-                - Break the problem into smaller steps`,
+                - In your evaluation of the next step consider the user interactions the user has already done
+                `,
             },
           ],
         },
@@ -355,13 +392,13 @@ async function handleSendMessage() {
     // Format user interactions for better readability
     const formattedInteractions = userInteractions.map((interaction) => ({
       ...interaction,
-      timestamp: new Date(interaction.timestamp).toLocaleTimeString(),
+      timestamp: interaction.timestamp,
     }));
 
     // Create a context summary of recent interactions
     const recentInteractions = formattedInteractions.slice(-5); // Get last 5 interactions
     const interactionsSummary = JSON.stringify(recentInteractions, null, 2);
-
+    console.log(recentInteractions, interactionsSummary);
     // Send message with context to Gemini
     const result = await chat.sendMessage([
       `User Message: ${message}
