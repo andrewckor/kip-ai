@@ -132,9 +132,29 @@ function highlightPageElement(selector) {
 
 // Create and append chat container
 const createChatContainer = () => {
+  // Create the pill button
+  const pillButton = document.createElement('div');
+  pillButton.id = 'chat-pill';
+  pillButton.innerHTML = 'Chat with Kip';
+  pillButton.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #007bff;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: all 0.3s ease;
+  `;
+
+  // Create the chat container
   const chatContainer = document.createElement('div');
   chatContainer.innerHTML = `
-    <div id="chat-container" style="${chatStyles.chatContainer}">
+    <div id="chat-container" style="${chatStyles.chatContainer} display: none; position: fixed; bottom: 80px; right: 20px; width: 350px; height: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden;">
       <div id="chat-messages" style="${chatStyles.chatMessages}"></div>
       <div id="chat-input-container" style="${chatStyles.chatInputContainer}">
         <input 
@@ -154,6 +174,8 @@ const createChatContainer = () => {
     </div>
   `;
 
+  // Add elements to the page
+  document.body.appendChild(pillButton);
   document.body.appendChild(chatContainer.firstElementChild);
 
   // Store references to chat elements
@@ -162,14 +184,38 @@ const createChatContainer = () => {
     messages: document.getElementById('chat-messages'),
     input: document.getElementById('chat-input'),
     sendButton: document.getElementById('send-button'),
+    pill: pillButton,
   };
 
-  // Set up event listeners after elements are in the DOM
+  // Set up event listeners
   chatElements.sendButton.addEventListener('click', handleSendMessage);
   chatElements.input.addEventListener('keypress', e => {
     if (e.key === 'Enter') {
       handleSendMessage();
     }
+  });
+
+  // Add toggle functionality
+  let isChatOpen = false;
+  chatElements.pill.addEventListener('click', () => {
+    isChatOpen = !isChatOpen;
+    chatElements.container.style.display = isChatOpen ? 'flex' : 'none';
+    chatElements.pill.style.transform = isChatOpen ? 'scale(0.9)' : 'scale(1)';
+    chatElements.pill.innerHTML = isChatOpen ? 'Close Chat' : 'Chat with Kip';
+
+    if (isChatOpen) {
+      chatElements.input.focus();
+      chatElements.messages.scrollTop = chatElements.messages.scrollHeight;
+    }
+  });
+
+  // Add hover effect to pill
+  chatElements.pill.addEventListener('mouseover', () => {
+    chatElements.pill.style.transform = 'scale(1.05)';
+  });
+
+  chatElements.pill.addEventListener('mouseout', () => {
+    chatElements.pill.style.transform = isChatOpen ? 'scale(0.9)' : 'scale(1)';
   });
 
   return chatElements;

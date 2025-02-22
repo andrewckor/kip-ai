@@ -5,6 +5,7 @@ export const cursorStyles = {
     color: #000;
     position: fixed;
     animation: floatAnimation 3s ease-in-out infinite;
+    pointer-events: none;
   `,
   floatingPoint: `
     transform-origin: center;
