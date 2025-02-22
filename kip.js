@@ -112,6 +112,18 @@ function highlightPageElement(selector) {
     element.style.transition = 'all 0.3s ease-in-out';
     currentlyHighlightedElement = element;
 
+    // Only scroll if element is not in viewport
+    const elementRect = element.getBoundingClientRect();
+    const isInViewport =
+      elementRect.top >= 0 &&
+      elementRect.left >= 0 &&
+      elementRect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      elementRect.right <= (window.innerWidth || document.documentElement.clientWidth);
+
+    if (!isInViewport) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     // Create floating cursor below the element
     const cursorX = rect.left + window.scrollX + rect.width / 2 - 16; // Center horizontally
     const cursorY = rect.bottom + window.scrollY + 10; // 10px below the element
