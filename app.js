@@ -25,6 +25,22 @@ const functionDefinitions = [
       required: ["selector"],
     },
   },
+  {
+    name: "removeActiveHighlight",
+    description:
+      "Remove any active highlight from the page when the user moved to next step",
+    parameters: {
+      type: "object",
+      properties: {
+        selector: {
+          type: "string",
+          description:
+            "The selector parameter is ignored but required by the API for consistency",
+        },
+      },
+      required: ["selector"],
+    },
+  },
 ];
 
 // Function implementation
@@ -50,9 +66,34 @@ function createFloatingCursor(x, y) {
   return cursor;
 }
 
+// Keep track of currently highlighted element
+let currentlyHighlightedElement = null;
+
+function removeActiveHighlight() {
+  // Remove cursor
+  const cursor = document.querySelector(".floating-hand");
+  if (cursor) {
+    cursor.remove();
+  }
+
+  // Remove highlight from current element
+  if (currentlyHighlightedElement) {
+    currentlyHighlightedElement.style.backgroundColor = "";
+    currentlyHighlightedElement.style.outline = "";
+    currentlyHighlightedElement.style.transition = "";
+    currentlyHighlightedElement = null;
+  }
+
+  shouldKipObserveInteractions = false;
+  return "Highlight and cursor removed";
+}
+
 function highlightPageElement(selector) {
   const element = document.querySelector(selector);
   if (element) {
+    // Remove any existing highlight first
+    removeActiveHighlight();
+
     const rect = element.getBoundingClientRect();
     const coordinates = {
       x: rect.left + window.scrollX,
@@ -66,6 +107,7 @@ function highlightPageElement(selector) {
     element.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
     element.style.outline = "2px solid red";
     element.style.transition = "all 0.3s ease-in-out";
+    currentlyHighlightedElement = element;
 
     // Create floating cursor below the element
     const cursorX = rect.left + window.scrollX + rect.width / 2 - 16; // Center horizontally
@@ -196,13 +238,40 @@ const CURSOR_IMAGE = `<svg
       <rect x="105" y="26.25" width="26.25" height="236.25" fill="black" />
     </svg>`;
 
-// Function to add interaction to the array
+// New unified function to handle AI responses
+async function handleAIResponse(response) {
+  try {
+    // Get the response parts
+    const parts = response.candidates[0].content.parts;
+    let responseText = "";
+
+    // First, collect all text parts
+    for (const part of parts) {
+      if (part.text) {
+        responseText += part.text + "\n";
+      }
+    }
+
+    // Add the initial response text if any
+    if (responseText) {
+      addMessage(responseText.trim(), false);
+    }
+
+    // Then execute all function calls in sequence
+    const functionCalls = parts.filter((part) => part.functionCall);
+    if (functionCalls.length > 0) {
+      for (const part of functionCalls) {
+        await handleFunctionCall(part.functionCall);
+      }
+    }
+  } catch (error) {
+    console.error("Error handling AI response:", error);
+    addMessage("Sorry, I encountered an error processing the response.", false);
+  }
+}
+
+// Update trackInteraction function
 function trackInteraction(type, details) {
-  console.log({
-    type,
-    details,
-    timestamp: new Date().toISOString(),
-  });
   userInteractions.push({
     type,
     details,
@@ -225,16 +294,71 @@ function trackInteraction(type, details) {
           null,
           2
         )}
-        If this isn't what user supposed to do, advise them through the chat.
+        If this isn't what user supposed to do, advise them through the chat. And do not remove the active highlight.
         `
       )
-      .then((result) => {
-        const response = result.response.text();
-        addMessage(response, false);
-      })
+      .then((result) => handleAIResponse(result.response))
       .catch((error) =>
         console.error("Error notifying AI of interaction:", error)
       );
+  }
+}
+
+// Update handleSendMessage function
+async function handleSendMessage() {
+  const message = chatInput.value.trim();
+  if (!message) return;
+
+  // Add user message
+  addMessage(message, true);
+  chatInput.value = "";
+
+  try {
+    // Capture the viewport
+    const base64Image = await captureViewport();
+
+    if (!base64Image) {
+      throw new Error("Failed to capture viewport");
+    }
+
+    // Get the HTML content of the page
+    const htmlContent = document.documentElement.outerHTML;
+
+    // Format user interactions for better readability
+    const formattedInteractions = userInteractions.map((interaction) => ({
+      ...interaction,
+      timestamp: interaction.timestamp,
+    }));
+
+    // Create a context summary of recent interactions
+    const recentInteractions = formattedInteractions.slice(-5);
+    const interactionsSummary = JSON.stringify(recentInteractions, null, 2);
+
+    // Send message with context to Gemini
+    const result = await chat.sendMessage([
+      `User Message: ${message}
+
+Recent User Interactions:
+${interactionsSummary}
+
+Total Interactions: ${userInteractions.length}
+Current Page URL: ${window.location.href}
+Viewport Size: ${window.innerWidth}x${window.innerHeight}
+
+Page HTML:
+${htmlContent}`,
+      {
+        inlineData: {
+          data: base64Image,
+          mimeType: "image/png",
+        },
+      },
+    ]);
+
+    await handleAIResponse(result.response);
+  } catch (error) {
+    console.error("Error:", error);
+    addMessage("Sorry, I encountered an error processing your request.", false);
   }
 }
 
@@ -406,8 +530,31 @@ async function initChat() {
                 RULES:
                 - Always be concise and direct in your responses.
                 - Break the problem into smaller steps and explain to the user what steps need to follow
-                - Always hightlight to the user where to press/navigate by using highlightPageElement
-                - In your evaluation of the next step consider the user interactions the user has already done
+                - Always highlight to the user where to press/navigate by using highlightPageElement
+                - Monitor user interactions after highlighting:
+                  * When user clicks the correct element, remove current highlight and highlight the next element in sequence
+                  * If the user clicks elsewhere, guide them back to the highlighted element
+                - Each step should follow this pattern:
+                  1. Highlight the target element
+                  2. Wait for correct interaction
+                  3. Remove current highlight and immediately highlight next element
+                  4. Repeat until task is complete
+                - Keep track of the current highlighted element and user's progress
+
+                EXAMPLE RESPONSE PATTERN:
+                When user clicks the correct element, respond like this:
+                "Great! You've clicked the correct button. Now let's move to the next step."
+                [Call removeActiveHighlight]
+                [Call highlightPageElement for the next element]
+                "Now click here to continue..."
+
+                Or when moving between sections:
+                "Perfect! Now let's go to the form section."
+                [Call removeActiveHighlight]
+                [Call highlightPageElement for the 'Apply Now' link]
+                "Click 'Apply Now' to see the application form."
+
+                Remember to chain the remove and highlight commands together when transitioning between steps.
                 `,
             },
           ],
@@ -473,88 +620,10 @@ async function handleFunctionCall(functionCall) {
 
   if (name === "highlightPageElement") {
     return highlightPageElement(args.selector);
+  } else if (name === "removeActiveHighlight") {
+    return removeActiveHighlight();
   }
   return `Function ${name} not implemented`;
-}
-
-async function handleSendMessage() {
-  const message = chatInput.value.trim();
-  if (!message) return;
-
-  // Add user message
-  addMessage(message, true);
-  chatInput.value = "";
-
-  try {
-    // Capture the viewport
-    const base64Image = await captureViewport();
-
-    if (!base64Image) {
-      throw new Error("Failed to capture viewport");
-    }
-
-    // Get the HTML content of the page
-    const htmlContent = document.documentElement.outerHTML;
-
-    // Format user interactions for better readability
-    const formattedInteractions = userInteractions.map((interaction) => ({
-      ...interaction,
-      timestamp: interaction.timestamp,
-    }));
-
-    // Create a context summary of recent interactions
-    const recentInteractions = formattedInteractions.slice(-5); // Get last 5 interactions
-    const interactionsSummary = JSON.stringify(recentInteractions, null, 2);
-    console.log(recentInteractions, interactionsSummary);
-    // Send message with context to Gemini
-    const result = await chat.sendMessage([
-      `User Message: ${message}
-
-Recent User Interactions:
-${interactionsSummary}
-
-Total Interactions: ${userInteractions.length}
-Current Page URL: ${window.location.href}
-Viewport Size: ${window.innerWidth}x${window.innerHeight}
-
-Page HTML:
-${htmlContent}`,
-      {
-        inlineData: {
-          data: base64Image,
-          mimeType: "image/png",
-        },
-      },
-    ]);
-
-    const response = await result.response;
-
-    // Check all parts for function calls
-    const functionCalls = response.candidates[0].content.parts.filter(
-      (part) => part.functionCall
-    );
-
-    if (functionCalls.length > 0) {
-      // Handle all function calls sequentially
-      for (const part of functionCalls) {
-        const functionResponse = await handleFunctionCall(part.functionCall);
-
-        // Send function response back to chat
-        const followUpResult = await chat.sendMessage(
-          `Function Response: ${functionResponse}`
-        );
-        const followUpText = followUpResult.response.text();
-        addMessage(followUpText, false);
-      }
-    } else {
-      // Regular text response
-      const text = response.text();
-      addMessage(text, false);
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    addMessage("Sorry, I encountered an error processing your request.", false);
-  }
 }
 
 sendButton.addEventListener("click", handleSendMessage);
