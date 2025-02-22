@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Careers at TechVision - Join Our Team</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #4299e1;
+        --primary-dark: #3182ce;
+        --text-primary: #2d3748;
+        --text-secondary: #4a5568;
+        --text-light: #718096;
+        --bg-light: #f8f9fa;
+        --bg-card: #f7fafc;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --radius-md: 12px;
+        --radius-sm: 8px;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        background-color: var(--bg-light);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+
+      #canvas-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      nav {
+        background-color: white;
+        padding: 20px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 40px;
+      }
+
+      nav ul {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .nav-link {
+        text-decoration: none;
+        color: var(--text-secondary);
+        padding: 10px 20px;
+        border-radius: var(--radius-sm);
+        transition: all 0.2s ease;
+        font-weight: 500;
+      }
+
+      .nav-link:hover {
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+      }
+
+      .nav-link.active {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .content-section {
+        display: none;
+        animation: fadeIn 0.3s ease-in;
+        background-color: white;
+        padding: 40px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .content-section.active {
+        display: block;
+      }
+
+      h2 {
+        color: var(--text-primary);
+        margin: 0 0 24px;
+        font-size: 2rem;
+        font-weight: 600;
+      }
+
+      h3 {
+        color: var(--text-primary);
+        margin: 0 0 16px;
+        font-size: 1.5rem;
+      }
+
+      p {
+        color: var(--text-secondary);
+        margin: 0 0 16px;
+        font-size: 1.1rem;
+      }
+      /* Benefits Cards */
+
+      .benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-top: 32px;
+      }
+
+      .benefit-card {
+        background: var(--bg-card);
+        padding: 24px;
+        border-radius: var(--radius-sm);
+        transition: transform 0.2s ease;
+      }
+
+      .benefit-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+      /* Job Positions */
+
+      #positions-section ul {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        padding: 0;
+      }
+
+      .position-card {
+        background: var(--bg-card);
+        padding: 24px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+      }
+
+      .position-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+      /* Form Styles */
+
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text-primary);
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        font-family: inherit;
+        background-color: var(--bg-card);
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+      }
+
+      button {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 14px 28px;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        width: 100%;
+      }
+
+      button:hover {
+        background-color: var(--primary-dark);
+      }
+      /* Contact Section */
+
+      #contact-section {
+        text-align: center;
+      }
+
+      .contact-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s ease;
+      }
+
+      .contact-link:hover {
+        color: var(--primary-dark);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        #canvas-container {
+          padding: 20px;
+        }
+        .content-section {
+          padding: 24px;
+        }
+        nav {
+          padding: 16px;
+        }
+        .nav-link {
+          padding: 8px 16px;
+        }
+      }
+      /* Logo Styles */
+
+      .logo-container {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        gap: 12px;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        letter-spacing: -0.5px;
+      }
+
+      .logo-svg {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+      }
+
+      .logo-text span:first-child {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .logo-text span:last-child {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+        font-weight: 500;
+        letter-spacing: normal;
+      }
+
+      @media (max-width: 768px) {
+        .logo-svg {
+          width: 32px;
+          height: 32px;
+        }
+        .logo {
+          font-size: 1.25rem;
+        }
+      }
+      /* Updated Header Styles */
+
+      .main-header {
+        background-color: white;
+        box-shadow: var(--shadow-sm);
+        padding: 16px 0;
+        margin-bottom: 40px;
+      }
+
+      .header-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+      }
+
+      .logo-container {
+        text-decoration: none;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-svg {
+        width: 40px;
+        height: 40px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .logo-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+      }
+
+      .logo-text span:first-child {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .logo-text span:last-child {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--primary-color);
+        letter-spacing: 1px;
+      }
+
+      .header-nav {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .header-nav a {
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 16px;
+        transition: color 0.2s ease;
+      }
+
+      .header-nav a:hover,
+      .header-nav a.active {
+        color: var(--primary-color);
+      }
+
+      @media (max-width: 768px) {
+        .header-content {
+          flex-direction: column;
+          gap: 16px;
+        }
+        .header-nav {
+          gap: 16px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="main-header">
+      <div class="header-container">
+        <div class="header-content">
+          <a href="index.html" class="logo-container">
+            <div class="logo">
+              <div class="logo-svg">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 4L4 8L12 12L20 8L12 4Z"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M4 16L12 20L20 16"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M4 12L12 16L20 12"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <div class="logo-text">
+                <span>TechVision</span>
+                <span>INNOVATIONS</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <div id="canvas-container">
+      <nav>
+        <ul style="list-style: none; padding: 0; margin: 0">
+          <li>
+            <a href="#" class="nav-link" data-section="about">About Us</a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-section="positions">Open Positions</a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-section="apply">Apply Now</a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-section="contact">Contact</a>
+          </li>
+        </ul>
+      </nav>
+
+      <div id="content-sections">
+        <div id="about-section" class="content-section">
+          <h2>Join Our Mission</h2>
+          <p>
+            At TechVision, we're not just building software – we're shaping the future of
+            technology. Our team of passionate innovators works on cutting-edge solutions that
+            impact millions of users worldwide.
+          </p>
+          <p>
+            We believe in fostering a culture of creativity, collaboration, and continuous learning.
+            Our diverse team brings together talent from various backgrounds, creating an
+            environment where great ideas can flourish.
+          </p>
+          <div class="benefits-grid">
+            <div class="benefit-card">
+              <h4>Remote-First Culture</h4>
+              <p>Work from anywhere in the world with our flexible remote policy</p>
+            </div>
+            <div class="benefit-card">
+              <h4>Competitive Benefits</h4>
+              <p>Comprehensive health coverage, 401(k) matching, and equity options</p>
+            </div>
+            <div class="benefit-card">
+              <h4>Growth Opportunities</h4>
+              <p>Continuous learning with education stipends and mentorship programs</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="positions-section" class="content-section">
+          <h2>Current Open Positions</h2>
+          <ul>
+            <li class="position-card">
+              <h3>Senior Frontend Developer</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Lead the development of our next-gen web applications using React, TypeScript, and
+                modern web technologies.
+              </p>
+            </li>
+            <li class="position-card">
+              <h3>Backend Engineer</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Build scalable microservices and APIs using Node.js, Python, and cloud technologies.
+              </p>
+            </li>
+            <li class="position-card">
+              <h3>Full Stack Developer</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Work across our entire stack, from frontend to backend, building features that
+                delight our users.
+              </p>
+            </li>
+            <li class="position-card">
+              <h3>Senior Product Designer</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Shape the user experience of our products through thoughtful and innovative design
+                solutions.
+              </p>
+            </li>
+          </ul>
+        </div>
+
+        <div id="apply-section" class="content-section">
+          <form id="job-application-form">
+            <h2>Apply Now</h2>
+            <p>Ready to take the next step in your career? We'd love to hear from you.</p>
+
+            <div class="form-group">
+              <label for="full-name">Full Name</label>
+              <input type="text" id="full-name" placeholder="Enter your full name" required />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" placeholder="Enter your email address" required />
+            </div>
+
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" placeholder="Enter your phone number" />
+            </div>
+
+            <div class="form-group">
+              <label for="position">Position Applied For</label>
+              <select id="position" required>
+                <option value="">Select a position</option>
+                <option value="senior-frontend">Senior Frontend Developer</option>
+                <option value="backend">Backend Engineer</option>
+                <option value="fullstack">Full Stack Developer</option>
+                <option value="product-designer">Senior Product Designer</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="experience">Years of Experience</label>
+              <select id="experience" required>
+                <option value="">Select years of experience</option>
+                <option value="0-2">0-2 years</option>
+                <option value="3-5">3-5 years</option>
+                <option value="5-7">5-7 years</option>
+                <option value="8+">8+ years</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="portfolio">Portfolio URL</label>
+              <input type="url" id="portfolio" placeholder="https://your-portfolio.com" />
+            </div>
+
+            <div class="form-group">
+              <label for="linkedin">LinkedIn Profile</label>
+              <input type="url" id="linkedin" placeholder="https://linkedin.com/in/your-profile" />
+            </div>
+
+            <div class="form-group">
+              <label for="message">Why do you want to join our team?</label>
+              <textarea
+                id="message"
+                rows="4"
+                placeholder="Tell us about your motivation to join our team..."
+              ></textarea>
+            </div>
+
+            <button type="submit">Submit Application</button>
+          </form>
+        </div>
+
+        <div id="contact-section" class="content-section">
+          <h2>Get in Touch</h2>
+          <p>Have questions about our open positions or the application process?</p>
+          <p>
+            Email us at
+            <a href="mailto:careers@techvision.com" class="contact-link">careers@techvision.com</a>
+          </p>
+          <p>Our recruiting team typically responds within 48 hours.</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('.content-section');
+
+        // Show About section by default
+        document.querySelector('#about-section').classList.add('active');
+        document.querySelector('[data-section="about"]').classList.add('active');
+
+        navLinks.forEach(link => {
+          link.addEventListener('click', e => {
+            e.preventDefault();
+
+            // Remove active class from all links and sections
+            navLinks.forEach(l => l.classList.remove('active'));
+            sections.forEach(s => s.classList.remove('active'));
+
+            // Add active class to clicked link and corresponding section
+            const sectionId = link.getAttribute('data-section');
+            link.classList.add('active');
+            document.querySelector(`#${sectionId}-section`).classList.add('active');
+          });
+        });
+
+        // Form submission handling
+        const form = document.getElementById('job-application-form');
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          alert('Thank you for your application! We will review it and get back to you soon.');
+          form.reset();
+        });
+      });
+    </script>
+    <script type="module" src="../../kip.js"></script>
+  </body>
+</html>
