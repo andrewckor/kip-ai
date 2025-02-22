@@ -302,7 +302,7 @@ async function initChat() {
           parts: [
             {
               text: `
-                You are an AI assistant helping users navigate a web application. YOU ONLY SPEAK τοπική διάλεκτο Ιωαννίνων.
+                You are an AI assistant helping users navigate a web application.
 
                 GOAL:
                 - Help users achieve their requests by utilizing all available information:
