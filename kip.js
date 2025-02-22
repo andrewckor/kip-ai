@@ -47,24 +47,22 @@ const functionDefinitions = [
 ];
 
 // Function implementation
-function createFloatingCursor(x, y) {
-  // Remove any existing floating cursor
-  const existingCursor = document.querySelector('#cursor');
-  if (existingCursor) {
-    existingCursor.remove();
+function moveFloatingCursor(x, y) {
+  // Get or create the floating cursor
+  let cursor = document.querySelector('#cursor');
+  if (!cursor) {
+    // Create new cursor only if it doesn't exist
+    cursor = document.createElement('div');
+    cursor.id = 'cursor';
+    cursor.innerHTML = CURSOR_IMAGE;
+    cursor.style.position = 'fixed';
+    document.body.appendChild(cursor);
   }
 
-  // Create the floating cursor element
-  const cursor = document.createElement('div');
-  cursor.innerHTML = CURSOR_IMAGE;
-
-  // Position the cursor
+  // Update cursor position with transition for smooth movement
+  cursor.style.transition = 'all 0.3s ease-in-out';
   cursor.style.left = `${x}px`;
   cursor.style.top = `${y}px`;
-  cursor.style.position = `fixed`;
-
-  // Add to document
-  document.body.appendChild(cursor);
 
   return cursor;
 }
@@ -127,7 +125,7 @@ function highlightPageElement(selector) {
     // Create floating cursor below the element
     const cursorX = rect.left + window.scrollX + rect.width / 2 - 16; // Center horizontally
     const cursorY = rect.bottom + window.scrollY + 10; // 10px below the element
-    createFloatingCursor(cursorX, cursorY);
+    moveFloatingCursor(cursorX, cursorY);
 
     shouldKipObserveInteractions = true;
     return JSON.stringify(coordinates, null, 2);
