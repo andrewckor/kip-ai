@@ -19,7 +19,7 @@ export class KipAI {
     this.isChatOpen = false;
     this.isSettingsOpen = false;
     this.settings = {
-      enabledAudio: true,
+      enabledAudio: false,
       isChatOpen: false,
     };
     this.currentAudio = null;
