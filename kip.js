@@ -93,6 +93,34 @@ export class KipAI {
     };
   }
 
+  // Add new helper method to get SVG eyes content
+  getPillEyesSvg() {
+    return `
+      <svg width="26" height="20" viewBox="0 0 26 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 26px; cursor: pointer;" class="pulse-ellipses">
+        <ellipse cx="5" cy="12" rx="5" ry="5" fill="white" class="ellipse">
+          <animate 
+            attributeName="ry" 
+            values="5;1;5" 
+            dur="300ms"
+            repeatCount="1"
+            begin="0s; +5s"
+            keyTimes="0;0.5;1"
+          />
+        </ellipse>
+        <ellipse cx="21" cy="12" rx="5" ry="5" fill="white" class="ellipse">
+          <animate 
+            attributeName="ry" 
+            values="5;1;5" 
+            dur="300ms"
+            repeatCount="1"
+            begin="0.2s; +5.2s"
+            keyTimes="0;0.5;1"
+          />
+        </ellipse>
+      </svg>
+    `;
+  }
+
   // Create and append chat container to the page
   createChatContainer() {
     // Create the pill button
@@ -448,41 +476,15 @@ export class KipAI {
         this.toggleSettings();
       }
     });
-
-    // Add the SVG eyes separately
-    const pillEyes = document.createElement('div');
-    pillEyes.innerHTML = `
-      <svg width="26" height="20" viewBox="0 0 26 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 26px; cursor: pointer;" class="pulse-ellipses">
-        <ellipse cx="5" cy="12" rx="5" ry="5" fill="white" class="ellipse">
-          <animate 
-            attributeName="ry" 
-            values="5;1;5" 
-            dur="300ms"
-            repeatCount="1"
-            begin="0s; +5s"
-            keyTimes="0;0.5;1"
-          />
-        </ellipse>
-        <ellipse cx="21" cy="12" rx="5" ry="5" fill="white" class="ellipse">
-          <animate 
-            attributeName="ry" 
-            values="5;1;5" 
-            dur="300ms"
-            repeatCount="1"
-            begin="0.2s; +5.2s"
-            keyTimes="0;0.5;1"
-          />
-        </ellipse>
-      </svg>
-    `;
-    document.querySelector('#pill-eyes').appendChild(pillEyes.firstElementChild);
   }
 
-  // Add new helper method to generate pill content
+  // Update getPillContent to directly include the SVG
   getPillContent(isOpen) {
     return `
       <div style="${chatStyles.pillInner}">
-        <div id="pill-eyes"></div>
+        <div id="pill-eyes">
+          ${this.getPillEyesSvg()}
+        </div>
       </div>
     `;
   }
@@ -494,35 +496,6 @@ export class KipAI {
     this.saveSettings();
     this.chatElements.container.style.display = this.isChatOpen ? 'flex' : 'none';
     this.chatElements.pill.classList.toggle('chat-open', this.isChatOpen);
-
-    // Reset the animation by recreating the SVG
-    const pillEyes = document.querySelector('#pill-eyes');
-    if (pillEyes) {
-      pillEyes.innerHTML = `
-        <svg width="26" height="20" viewBox="0 0 26 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 26px; cursor: pointer;" class="pulse-ellipses">
-          <ellipse cx="5" cy="12" rx="5" ry="5" fill="white" class="ellipse">
-            <animate 
-              attributeName="ry" 
-              values="5;1;5" 
-              dur="300ms"
-              repeatCount="1"
-              begin="0s; +5s"
-              keyTimes="0;0.5;1"
-            />
-          </ellipse>
-          <ellipse cx="21" cy="12" rx="5" ry="5" fill="white" class="ellipse">
-            <animate 
-              attributeName="ry" 
-              values="5;1;5" 
-              dur="300ms"
-              repeatCount="1"
-              begin="0.2s; +5.2s"
-              keyTimes="0;0.5;1"
-            />
-          </ellipse>
-        </svg>
-      `;
-    }
 
     if (this.isChatOpen) {
       this.chatElements.input.focus();
