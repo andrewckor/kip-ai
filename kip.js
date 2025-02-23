@@ -594,7 +594,7 @@ export class KipAI {
       .map(
         msg => `
       <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}">
-        <div>${msg.content}</div>
+        <div style="white-space: pre-wrap;">${msg.content}</div>
       </div>
     `
       )
