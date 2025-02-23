@@ -94,7 +94,7 @@ export class KipAI {
     const pillButton = document.createElement('div');
     pillButton.id = 'chat-pill';
     pillButton.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 6px;">
+      <div style="${chatStyles.pillInner}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 20px;">
           <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
             stroke="currentColor" 
@@ -116,7 +116,7 @@ export class KipAI {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: #007bff;
+      background: #000000;
       color: white;
       padding: 8px 16px;
       border-radius: 25px;
@@ -159,18 +159,18 @@ export class KipAI {
     // Create the chat container
     const chatContainer = document.createElement('div');
     chatContainer.innerHTML = `
-      <div id="chat-container" style="${chatStyles.chatContainer} display: none; position: fixed; bottom: 80px; right: 20px; width: 350px; height: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden;">
+      <div id="chat-container" style="${chatStyles.chatContainer}">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
-                stroke="#007bff" 
+                stroke="#000000" 
                 stroke-width="2" 
                 stroke-linecap="round" 
                 stroke-linejoin="round"
               />
               <path d="M8 12H16M12 8V16" 
-                stroke="#007bff" 
+                stroke="#000000" 
                 stroke-width="2" 
                 stroke-linecap="round" 
                 stroke-linejoin="round"
@@ -183,8 +183,8 @@ export class KipAI {
             style="
               padding: 6px 12px;
               border: none;
-              background: #f8f9fa;
-              color: #6c757d;
+              background: transparent;
+              color: #9ca3af;
               border-radius: 6px;
               cursor: pointer;
               font-size: 13px;
@@ -194,8 +194,8 @@ export class KipAI {
               align-items: center;
               gap: 4px;
             "
-            onmouseover="this.style.background='#e9ecef'; this.style.color='#495057';" 
-            onmouseout="this.style.background='#f8f9fa'; this.style.color='#6c757d';"
+            onmouseover="this.style.background='#e5e7eb'; this.style.color='#4b5563';" 
+            onmouseout="this.style.background='transparent'; this.style.color='#9ca3af';"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -269,17 +269,17 @@ export class KipAI {
         </div>
         <div id="chat-messages" style="${chatStyles.chatMessages}"></div>
         <div id="chat-input-container" style="${chatStyles.chatInputContainer}">
-          <input 
-            type="text"
+          <textarea 
             id="chat-input"
             placeholder="Type your message..."          
             style="${chatStyles.chatInput}"
-          />
+            rows="1"
+          ></textarea>
           <button 
             id="send-button" 
             style="${chatStyles.sendButton}"
-            onmouseover="this.style.background='#0056b3'" 
-            onmouseout="this.style.background='#007bff'"
+            onmouseover="this.style.background='#333333'" 
+            onmouseout="this.style.background='#000000'"
           >Send</button>
         </div>
       </div>
@@ -306,7 +306,7 @@ export class KipAI {
     const toggleStyles = document.createElement('style');
     toggleStyles.textContent = `
       .toggle-switch input:checked + .toggle-slider {
-        background-color: #28a745;
+        background-color: #000000;
       }
       .toggle-slider:before {
         position: absolute;
@@ -327,11 +327,31 @@ export class KipAI {
 
     // Set up event listeners
     this.chatElements.sendButton.addEventListener('click', () => this.handleSendMessage());
-    this.chatElements.input.addEventListener('keypress', e => {
+
+    // Handle textarea auto-grow and key events
+    this.chatElements.input.addEventListener('input', () => this.autoGrowTextarea());
+    this.chatElements.input.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
-        this.handleSendMessage();
+        if (e.shiftKey) {
+          // Allow new line with Shift+Enter
+          return;
+        } else {
+          // Prevent default to avoid new line and send message
+          e.preventDefault();
+          this.handleSendMessage();
+        }
       }
     });
+
+    // Add autoGrow method to the class
+    this.autoGrowTextarea = () => {
+      const textarea = this.chatElements.input;
+      // Reset height to allow shrinking
+      textarea.style.height = 'auto';
+      // Set new height based on scrollHeight, but respect max-height from CSS
+      const newHeight = Math.min(textarea.scrollHeight, 120);
+      textarea.style.height = newHeight + 'px';
+    };
 
     // Add settings functionality
     this.chatElements.settingsButton.addEventListener('click', () => this.toggleSettings());
@@ -369,7 +389,7 @@ export class KipAI {
 
     // Update button content with logo for both states
     this.chatElements.pill.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 6px;">
+      <div style="${chatStyles.pillInner}">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 20px;">
           <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
             stroke="currentColor" 
@@ -574,9 +594,6 @@ export class KipAI {
       .map(
         msg => `
       <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}">
-        <div style="font-size: 0.8em; margin-bottom: 5px">
-          ${msg.isUser ? 'You' : 'Kip'} - ${msg.timestamp}
-        </div>
         <div>${msg.content}</div>
       </div>
     `
