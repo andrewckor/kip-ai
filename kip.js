@@ -602,65 +602,77 @@ export class KipAI {
           ? 'background-color: rgba(0, 0, 0, 0.05); border-left: 3px solid #000000;'
           : ''
       } transition: all 0.3s ease;">
-        <div style="white-space: pre-wrap;">${msg.content}</div>
         ${
           !msg.isUser
             ? `
-          <button 
-            class="audio-control" 
-            data-message-id="${index}"
-            style="
-              background: none;
-              border: none;
-              cursor: pointer;
-              padding: 4px;
-              opacity: ${this.currentlyPlayingMessageId === index || this.loadingAudioMessageId === index ? '1' : '0.5'};
-              transition: opacity 0.3s ease;
-              display: ${this.settings.enabledAudio ? 'block' : 'none'};
-              position: absolute;
-              top: 4px;
-              right: 4px;
-              z-index: 1;
-            "
-          >
-            ${
-              this.loadingAudioMessageId === index
-                ? `
-              <div class="simple-spinner" style="
-                width: 16px;
-                height: 16px;
-                border: 2px solid currentColor;
-                border-right-color: transparent;
-                border-radius: 50%;
-                animation: spin 0.75s linear infinite;
-                display: inline-block;
-              ">
-              </div>
-              <style>
-                @keyframes spin {
-                  from { transform: rotate(0deg); }
-                  to { transform: rotate(360deg); }
-                }
-              </style>
-            `
-                : this.currentlyPlayingMessageId === index
+          <div style="
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 8px;
+            margin: 4px;
+            border-radius: 4px;
+            background: transparent;
+            z-index: 2;
+            transition: all 0.3s ease;
+          ">
+            <button 
+              class="audio-control" 
+              data-message-id="${index}"
+              style="
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 0;
+                opacity: ${this.currentlyPlayingMessageId === index || this.loadingAudioMessageId === index ? '1' : '0.5'};
+                transition: opacity 0.3s ease;
+                display: ${this.settings.enabledAudio ? 'flex' : 'none'};
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+              "
+            >
+              ${
+                this.loadingAudioMessageId === index
                   ? `
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 6h12v12H6z" fill="currentColor"/>
-              </svg>
-            `
-                  : `
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2"/>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" stroke-width="2"/>
-              </svg>
-            `
-            }
-          </button>
+                <div class="simple-spinner" style="
+                  width: 16px;
+                  height: 16px;
+                  border: 2px solid currentColor;
+                  border-right-color: transparent;
+                  border-radius: 50%;
+                  animation: spin 0.75s linear infinite;
+                  display: inline-block;
+                ">
+                </div>
+                <style>
+                  @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                  }
+                </style>
+              `
+                  : this.currentlyPlayingMessageId === index
+                    ? `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 6h12v12H6z" fill="currentColor"/>
+                </svg>
+              `
+                    : `
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2"/>
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              `
+              }
+            </button>
+          </div>
         `
             : ''
         }
+        <div style="white-space: pre-wrap; padding-right: ${!msg.isUser ? '32px' : '0'};">${msg.content}</div>
       </div>
     `
       )
