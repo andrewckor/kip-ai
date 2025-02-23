@@ -78,7 +78,7 @@ export class KipAI {
 
   // Helper method to get current domain
   getCurrentDomain() {
-    if (window.location.hostname.includes('http://localhost')) {
+    if (window.location.hostname.includes('localhost')) {
       return (window.location.hostname + window.location.pathname).replace(/[./]/g, '_');
     }
     return window.location.hostname || 'default';
