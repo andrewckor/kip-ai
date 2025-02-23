@@ -158,6 +158,15 @@ const createChatContainer = () => {
   const chatContainer = document.createElement('div');
   chatContainer.innerHTML = `
     <div id="chat-container" style="${chatStyles.chatContainer} display: none; position: fixed; bottom: 80px; right: 20px; width: 350px; height: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <span style="font-weight: bold;">Chat History - ${getCurrentDomain()}</span>
+        <button 
+          id="clear-history" 
+          style="padding: 4px 8px; border: none; background: #dc3545; color: white; border-radius: 4px; cursor: pointer; font-size: 12px;"
+          onmouseover="this.style.background='#c82333'" 
+          onmouseout="this.style.background='#dc3545'"
+        >Clear History</button>
+      </div>
       <div id="chat-messages" style="${chatStyles.chatMessages}"></div>
       <div id="chat-input-container" style="${chatStyles.chatInputContainer}">
         <input 
@@ -187,6 +196,7 @@ const createChatContainer = () => {
     messages: document.getElementById('chat-messages'),
     input: document.getElementById('chat-input'),
     sendButton: document.getElementById('send-button'),
+    clearButton: document.getElementById('clear-history'),
     pill: pillButton,
   };
 
@@ -195,6 +205,13 @@ const createChatContainer = () => {
   chatElements.input.addEventListener('keypress', e => {
     if (e.key === 'Enter') {
       handleSendMessage();
+    }
+  });
+
+  // Add clear history functionality
+  chatElements.clearButton.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear the chat history for this domain?')) {
+      clearDomainMessages();
     }
   });
 
@@ -224,8 +241,92 @@ const createChatContainer = () => {
   return chatElements;
 };
 
-// Store messages array
+// Store messages array and chat history
 let messages = [];
+let chatHistory = [];
+const MESSAGE_LIMIT = 50;
+
+// Helper function to trim messages and history to limit
+function trimToLimit() {
+  if (messages.length > MESSAGE_LIMIT) {
+    messages = messages.slice(-MESSAGE_LIMIT);
+  }
+  if (chatHistory.length > MESSAGE_LIMIT) {
+    chatHistory = chatHistory.slice(-MESSAGE_LIMIT);
+  }
+}
+
+// Helper function to get current domain
+function getCurrentDomain() {
+  return window.location.hostname || 'default';
+}
+
+// Helper function to get storage keys for current domain
+function getStorageKeys() {
+  const domain = getCurrentDomain();
+  return {
+    messages: `kipMessages_${domain}`,
+    history: `kipChatHistory_${domain}`,
+  };
+}
+
+// Add localStorage functions for messages and history
+function saveMessages() {
+  if (typeof localStorage !== 'undefined') {
+    try {
+      trimToLimit(); // Trim before saving
+      const keys = getStorageKeys();
+      localStorage.setItem(keys.messages, JSON.stringify(messages));
+      localStorage.setItem(keys.history, JSON.stringify(chatHistory));
+    } catch (error) {
+      console.error('Error saving messages to localStorage:', error);
+    }
+  }
+}
+
+function loadMessages() {
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const keys = getStorageKeys();
+      const savedMessages = localStorage.getItem(keys.messages);
+      const savedHistory = localStorage.getItem(keys.history);
+
+      if (savedMessages) {
+        messages = JSON.parse(savedMessages);
+      }
+
+      if (savedHistory) {
+        chatHistory = JSON.parse(savedHistory);
+      }
+
+      trimToLimit(); // Ensure loaded messages are within limit
+
+      if (chatElements?.messages) {
+        renderMessages();
+      }
+    } catch (error) {
+      console.error('Error loading messages from localStorage:', error);
+      messages = [];
+      chatHistory = [];
+    }
+  }
+}
+
+// Helper function to clear messages for current domain
+function clearDomainMessages() {
+  if (typeof localStorage !== 'undefined') {
+    try {
+      const keys = getStorageKeys();
+      localStorage.removeItem(keys.messages);
+      localStorage.removeItem(keys.history);
+      messages = [];
+      chatHistory = [];
+      renderMessages();
+    } catch (error) {
+      console.error('Error clearing messages from localStorage:', error);
+    }
+  }
+}
 
 // Update message rendering function
 function renderMessages() {
@@ -245,6 +346,7 @@ function renderMessages() {
     .join('');
 
   chatElements.messages.scrollTop = chatElements.messages.scrollHeight;
+  saveMessages(); // Save messages after rendering
 }
 
 function addMessage(message, isUser) {
@@ -259,6 +361,7 @@ function addMessage(message, isUser) {
     }),
   });
 
+  trimToLimit(); // Ensure we stay within limit after adding
   renderMessages();
 }
 
@@ -274,6 +377,9 @@ async function handleSendMessage() {
   chatHistory.push({ role: 'user', parts: [{ text: message }] });
   chatElements.input.value = '';
 
+  trimToLimit(); // Ensure we stay within limit after adding
+  saveMessages(); // Save after updating both messages and history
+
   try {
     const fullContext = await createFullMessageWithContext(`User Message: ${message}`);
     const result = await chat.sendMessage([fullContext.text, fullContext.image]);
@@ -281,9 +387,11 @@ async function handleSendMessage() {
     // Process the response
     const response = await handleAIResponse(result.response);
 
-    // Add assistant's response to chat history (without the context)
+    // Add assistant's response to chat history
     if (response) {
       chatHistory.push({ role: 'assistant', parts: [{ text: response }] });
+      trimToLimit(); // Ensure we stay within limit after AI response
+      saveMessages(); // Save after AI response
     }
   } catch (error) {
     console.error('Error:', error);
@@ -300,11 +408,13 @@ function formatFunctionDefinitions(definitions) {
     .join('\n');
 }
 
-// Initialize chat when the page loads
-let chatHistory = [];
-
+// Update initChat to use saved history
 async function initChat() {
   try {
+    // Load saved messages first
+    loadMessages();
+
+    // Initialize chat with saved history
     chat = model.startChat({
       history: [
         {
@@ -360,10 +470,12 @@ async function initChat() {
             },
           ],
         },
+        // Add saved chat history
+        ...chatHistory,
       ],
       tools: [{ functionDeclarations: functionDefinitions }],
     });
-    console.log('Chat initialized successfully');
+    console.log('Chat initialized successfully with previous history');
   } catch (error) {
     console.error('Error initializing chat:', error);
   }
@@ -372,6 +484,7 @@ async function initChat() {
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   createChatContainer();
+  loadMessages(); // Load saved messages
   initChat();
   setupEventTracking();
 });
@@ -508,7 +621,7 @@ function setupEventTracking() {
   // Add other event tracking setup here...
 }
 
-// Update trackInteraction function
+// Update trackInteraction function to include limit
 function trackInteraction(type, details) {
   userInteractions.push({
     type,
@@ -532,6 +645,8 @@ function trackInteraction(type, details) {
 
     // Add clean interaction message to chat history
     chatHistory.push({ role: 'user', parts: [{ text: interactionMessage }] });
+    trimToLimit(); // Ensure we stay within limit
+    saveMessages(); // Save after updating history
 
     // Create and send the full message with context
     (async () => {
