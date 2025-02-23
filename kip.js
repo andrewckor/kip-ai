@@ -138,21 +138,68 @@ const createChatContainer = () => {
   // Create the pill button
   const pillButton = document.createElement('div');
   pillButton.id = 'chat-pill';
-  pillButton.innerHTML = 'Chat with Kip';
+  pillButton.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 20px;">
+        <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+        <path d="M8 12H16M12 8V16" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+      </svg>
+      <span>Kip</span>
+    </div>
+  `;
   pillButton.style.cssText = `
     position: fixed;
     bottom: 20px;
     right: 20px;
     background: #007bff;
     color: white;
-    padding: 12px 24px;
+    padding: 8px 16px;
     border-radius: 25px;
     cursor: pointer;
     font-weight: bold;
+    font-size: 14px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
   `;
+
+  // Add floating animation keyframes
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = `
+    @keyframes floatingButton {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+      100% { transform: translateY(0px); }
+    }
+    #chat-pill:not(.chat-open) {
+      animation: floatingButton 3s ease-in-out infinite;
+    }
+    #chat-pill.chat-open {
+      transform: scale(0.9);
+    }
+    #chat-pill.chat-open:hover {
+      transform: scale(0.95);
+    }
+    #chat-pill:not(.chat-open):hover {
+      animation-play-state: paused;
+      transform: scale(1.05);
+    }
+  `;
+  document.head.appendChild(styleSheet);
 
   // Create the chat container
   const chatContainer = document.createElement('div');
@@ -220,8 +267,43 @@ const createChatContainer = () => {
   chatElements.pill.addEventListener('click', () => {
     isChatOpen = !isChatOpen;
     chatElements.container.style.display = isChatOpen ? 'flex' : 'none';
-    chatElements.pill.style.transform = isChatOpen ? 'scale(0.9)' : 'scale(1)';
-    chatElements.pill.innerHTML = isChatOpen ? 'Close Chat' : 'Chat with Kip';
+
+    // Update button content with logo for both states
+    chatElements.pill.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 20px;">
+          <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
+            stroke="currentColor" 
+            stroke-width="2" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"
+          />
+          ${
+            isChatOpen
+              ? `
+            <path d="M8 12L16 12" 
+              stroke="currentColor" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+            />
+          `
+              : `
+            <path d="M8 12H16M12 8V16" 
+              stroke="currentColor" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+            />
+          `
+          }
+        </svg>
+        <span>${isChatOpen ? 'Close' : 'Kip'}</span>
+      </div>
+    `;
+
+    // Toggle the chat-open class to control animation
+    chatElements.pill.classList.toggle('chat-open', isChatOpen);
 
     if (isChatOpen) {
       chatElements.input.focus();
@@ -229,14 +311,9 @@ const createChatContainer = () => {
     }
   });
 
-  // Add hover effect to pill
-  chatElements.pill.addEventListener('mouseover', () => {
-    chatElements.pill.style.transform = 'scale(1.05)';
-  });
-
-  chatElements.pill.addEventListener('mouseout', () => {
-    chatElements.pill.style.transform = isChatOpen ? 'scale(0.9)' : 'scale(1)';
-  });
+  // Remove the hover event listeners since we're handling it with CSS now
+  chatElements.pill.removeEventListener('mouseover', () => {});
+  chatElements.pill.removeEventListener('mouseout', () => {});
 
   return chatElements;
 };
