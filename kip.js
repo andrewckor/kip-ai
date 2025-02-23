@@ -7,7 +7,7 @@ import { captureViewport } from './includes/image-capture.js';
 export class KipAI {
   static MESSAGE_LIMIT = 50;
 
-  constructor() {
+  constructor(apiKey = config.GEMINI_API_KEY, genAiModel = 'gemini-2.0-flash-exp') {
     // Initialize state
     this.messages = [];
     this.chatHistory = [];
@@ -18,8 +18,8 @@ export class KipAI {
     this.isChatOpen = false;
 
     // Initialize Gemini
-    this.genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = this.genAI.getGenerativeModel({ model: genAiModel });
     this.chat = null;
 
     // Function definitions for Gemini
