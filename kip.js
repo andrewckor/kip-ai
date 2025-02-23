@@ -3,6 +3,7 @@ import { config } from './config.js';
 import { chatStyles } from './includes/styles.js';
 import { CURSOR_IMAGE } from './includes/cursor-image.js';
 import { captureViewport } from './includes/image-capture.js';
+import { ElevenLabsClient } from 'elevenlabs';
 
 export class KipAI {
   static MESSAGE_LIMIT = 50;
@@ -20,6 +21,9 @@ export class KipAI {
     this.settings = {
       enabledAudio: true,
     };
+    this.currentAudio = null;
+    this.currentlyPlayingMessageId = null; // Add tracking for currently playing message
+    this.loadingAudioMessageId = null; // Add tracking for loading state
 
     // Initialize Gemini
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -592,13 +596,95 @@ export class KipAI {
 
     this.chatElements.messages.innerHTML = this.messages
       .map(
-        msg => `
-      <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}">
+        (msg, index) => `
+      <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}; position: relative; ${
+        !msg.isUser && this.currentlyPlayingMessageId === index
+          ? 'background-color: rgba(0, 0, 0, 0.05); border-left: 3px solid #000000;'
+          : ''
+      } transition: all 0.3s ease;">
         <div style="white-space: pre-wrap;">${msg.content}</div>
+        ${
+          !msg.isUser
+            ? `
+          <button 
+            class="audio-control" 
+            data-message-id="${index}"
+            style="
+              background: none;
+              border: none;
+              cursor: pointer;
+              padding: 4px;
+              opacity: ${this.currentlyPlayingMessageId === index || this.loadingAudioMessageId === index ? '1' : '0.5'};
+              transition: opacity 0.3s ease;
+              display: ${this.settings.enabledAudio ? 'block' : 'none'};
+              position: absolute;
+              top: 4px;
+              right: 4px;
+              z-index: 1;
+            "
+          >
+            ${
+              this.loadingAudioMessageId === index
+                ? `
+              <div class="simple-spinner" style="
+                width: 16px;
+                height: 16px;
+                border: 2px solid currentColor;
+                border-right-color: transparent;
+                border-radius: 50%;
+                animation: spin 0.75s linear infinite;
+                display: inline-block;
+              ">
+              </div>
+              <style>
+                @keyframes spin {
+                  from { transform: rotate(0deg); }
+                  to { transform: rotate(360deg); }
+                }
+              </style>
+            `
+                : this.currentlyPlayingMessageId === index
+                  ? `
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6h12v12H6z" fill="currentColor"/>
+              </svg>
+            `
+                  : `
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            `
+            }
+          </button>
+        `
+            : ''
+        }
       </div>
     `
       )
       .join('');
+
+    // Add click handlers for audio controls
+    const audioControls = this.chatElements.messages.querySelectorAll('.audio-control');
+    audioControls.forEach(control => {
+      control.addEventListener('click', async () => {
+        const messageId = parseInt(control.dataset.messageId);
+        if (this.currentlyPlayingMessageId === messageId) {
+          // Stop current audio
+          if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio = null;
+          }
+          this.currentlyPlayingMessageId = null;
+        } else {
+          // Play this message's audio
+          await this.speakText(this.messages[messageId].content, messageId);
+        }
+        this.renderMessages();
+      });
+    });
 
     this.chatElements.messages.scrollTop = this.chatElements.messages.scrollHeight;
     this.saveMessages();
@@ -619,6 +705,11 @@ export class KipAI {
 
     this.trimToLimit();
     this.renderMessages();
+
+    // Speak bot messages if audio is enabled
+    if (!isUser) {
+      this.speakText(message, this.messages.length - 1);
+    }
   }
 
   // Helper method to create chat with history
@@ -905,6 +996,78 @@ export class KipAI {
       } catch (error) {
         console.error('Error loading settings from localStorage:', error);
       }
+    }
+  }
+
+  // Speak text using ElevenLabs
+  async speakText(text, messageId = null) {
+    if (!this.settings.enabledAudio) return;
+
+    try {
+      // Stop any currently playing audio
+      if (this.currentAudio) {
+        this.currentAudio.pause();
+        this.currentAudio = null;
+      }
+
+      // Set loading state
+      this.loadingAudioMessageId = messageId;
+      this.renderMessages();
+
+      const elevenlabs = new ElevenLabsClient({
+        apiKey: config.ELEVENLABS_API_KEY,
+      });
+
+      // Using a default voice ID for a female voice (Rachel)
+      const VOICE_ID = '21m00Tcm4TlvDq8ikWAM';
+
+      // Make the API request
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+        method: 'POST',
+        headers: {
+          Accept: 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': config.ELEVENLABS_API_KEY,
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const audioBlob = await response.blob();
+      const url = URL.createObjectURL(audioBlob);
+
+      // Clear loading state
+      this.loadingAudioMessageId = null;
+
+      // Create and play audio
+      this.currentAudio = new Audio(url);
+      this.currentlyPlayingMessageId = messageId;
+      this.renderMessages();
+
+      await this.currentAudio.play();
+
+      // Clean up when done
+      this.currentAudio.onended = () => {
+        URL.revokeObjectURL(url);
+        this.currentAudio = null;
+        this.currentlyPlayingMessageId = null;
+        this.renderMessages();
+      };
+    } catch (error) {
+      console.error('Error speaking text:', error);
+      this.loadingAudioMessageId = null;
+      this.currentlyPlayingMessageId = null;
+      this.renderMessages();
     }
   }
 }
