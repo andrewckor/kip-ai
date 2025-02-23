@@ -19,6 +19,7 @@ export class KipAI {
     this.isSettingsOpen = false;
     this.settings = {
       enabledAudio: true,
+      isChatOpen: false,
     };
 
     // Initialize Gemini
@@ -93,33 +94,15 @@ export class KipAI {
     // Create the pill button
     const pillButton = document.createElement('div');
     pillButton.id = 'chat-pill';
-    pillButton.innerHTML = `
-      <div style="${chatStyles.pillInner}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 20px;">
-          <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
-            stroke="currentColor" 
-            stroke-width="2" 
-            stroke-linecap="round" 
-            stroke-linejoin="round"
-          />
-          <path d="M8 12H16M12 8V16" 
-            stroke="currentColor" 
-            stroke-width="2" 
-            stroke-linecap="round" 
-            stroke-linejoin="round"
-          />
-        </svg>
-        <span>Kip</span>
-      </div>
-    `;
+    pillButton.innerHTML = this.getPillContent(false);
     pillButton.style.cssText = `
       position: fixed;
       bottom: 20px;
-      right: 20px;
+      right: 15px;
       background: #000000;
       color: white;
-      padding: 8px 16px;
-      border-radius: 25px;
+      padding: 15px 25px 15px 12px;
+      border-radius: 14px;
       cursor: pointer;
       font-weight: bold;
       font-size: 14px;
@@ -144,7 +127,9 @@ export class KipAI {
         animation: floatingButton 3s ease-in-out infinite;
       }
       #chat-pill.chat-open {
-        transform: scale(0.9);
+        padding-top: 17px;
+        padding-top: 17px;
+        transition: all .2s;
       }
       #chat-pill.chat-open:hover {
         transform: scale(0.95);
@@ -152,6 +137,30 @@ export class KipAI {
       #chat-pill:not(.chat-open):hover {
         animation-play-state: paused;
         transform: scale(1.05);
+      }
+      @keyframes pulseEllipses {
+        0%, 100% { ry: 5px; }
+        50% { ry: 1px; }
+      }
+      .pulse-ellipses .ellipse {
+        animation: pulseEllipses 300ms ease-in-out infinite;
+        animation-play-state: paused;
+        animation-iteration-count: 1;
+        animation-direction: alternate;
+      }
+      .pulse-ellipses .ellipse:first-child {
+        animation-play-state: running;
+        animation-delay: 0s, 5s;
+      }
+      .pulse-ellipses .ellipse:last-child {
+        animation-play-state: running;
+        animation-delay: 0.2s, 5.2s;
+      }
+      #chat-pill .pulse-ellipses {
+        transition: transform .2s;
+      }
+      #chat-pill.chat-open .pulse-ellipses {
+        transform: translateY(-12px) translateX(-4px);
       }
     `;
     document.head.appendChild(styleSheet);
@@ -162,20 +171,6 @@ export class KipAI {
       <div id="chat-container" style="${chatStyles.chatContainer}">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
-                stroke="#000000" 
-                stroke-width="2" 
-                stroke-linecap="round" 
-                stroke-linejoin="round"
-              />
-              <path d="M8 12H16M12 8V16" 
-                stroke="#000000" 
-                stroke-width="2" 
-                stroke-linecap="round" 
-                stroke-linejoin="round"
-              />
-            </svg>
             <span style="font-weight: bold; color: #2c3e50; font-size: 16px;">Kip AI</span>
           </div>
           <button 
@@ -380,49 +375,81 @@ export class KipAI {
         this.toggleSettings();
       }
     });
+
+    // Add the SVG eyes separately
+    const pillEyes = document.createElement('div');
+    pillEyes.innerHTML = `
+      <svg width="26" height="20" viewBox="0 0 26 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 26px; cursor: pointer;" class="pulse-ellipses">
+        <ellipse cx="5" cy="12" rx="5" ry="5" fill="white" class="ellipse">
+          <animate 
+            attributeName="ry" 
+            values="5;1;5" 
+            dur="300ms"
+            repeatCount="1"
+            begin="0s; +5s"
+            keyTimes="0;0.5;1"
+          />
+        </ellipse>
+        <ellipse cx="21" cy="12" rx="5" ry="5" fill="white" class="ellipse">
+          <animate 
+            attributeName="ry" 
+            values="5;1;5" 
+            dur="300ms"
+            repeatCount="1"
+            begin="0.2s; +5.2s"
+            keyTimes="0;0.5;1"
+          />
+        </ellipse>
+      </svg>
+    `;
+    document.querySelector('#pill-eyes').appendChild(pillEyes.firstElementChild);
   }
 
-  // Toggle chat visibility
-  toggleChat() {
-    this.isChatOpen = !this.isChatOpen;
-    this.chatElements.container.style.display = this.isChatOpen ? 'flex' : 'none';
-
-    // Update button content with logo for both states
-    this.chatElements.pill.innerHTML = `
+  // Add new helper method to generate pill content
+  getPillContent(isOpen) {
+    return `
       <div style="${chatStyles.pillInner}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 20px;">
-          <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
-            stroke="currentColor" 
-            stroke-width="2" 
-            stroke-linecap="round" 
-            stroke-linejoin="round"
-          />
-          ${
-            this.isChatOpen
-              ? `
-            <path d="M8 12L16 12" 
-              stroke="currentColor" 
-              stroke-width="2" 
-              stroke-linecap="round" 
-              stroke-linejoin="round"
-            />
-          `
-              : `
-            <path d="M8 12H16M12 8V16" 
-              stroke="currentColor" 
-              stroke-width="2" 
-              stroke-linecap="round" 
-              stroke-linejoin="round"
-            />
-          `
-          }
-        </svg>
-        <span>${this.isChatOpen ? 'Close' : 'Kip'}</span>
+        <div id="pill-eyes"></div>
       </div>
     `;
+  }
 
-    // Toggle the chat-open class to control animation
+  // Update toggleChat to use the new helper
+  toggleChat() {
+    this.isChatOpen = !this.isChatOpen;
+    this.settings.isChatOpen = this.isChatOpen;
+    this.saveSettings();
+    this.chatElements.container.style.display = this.isChatOpen ? 'flex' : 'none';
     this.chatElements.pill.classList.toggle('chat-open', this.isChatOpen);
+
+    // Reset the animation by recreating the SVG
+    const pillEyes = document.querySelector('#pill-eyes');
+    if (pillEyes) {
+      pillEyes.innerHTML = `
+        <svg width="26" height="20" viewBox="0 0 26 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="min-width: 26px; cursor: pointer;" class="pulse-ellipses">
+          <ellipse cx="5" cy="12" rx="5" ry="5" fill="white" class="ellipse">
+            <animate 
+              attributeName="ry" 
+              values="5;1;5" 
+              dur="300ms"
+              repeatCount="1"
+              begin="0s; +5s"
+              keyTimes="0;0.5;1"
+            />
+          </ellipse>
+          <ellipse cx="21" cy="12" rx="5" ry="5" fill="white" class="ellipse">
+            <animate 
+              attributeName="ry" 
+              values="5;1;5" 
+              dur="300ms"
+              repeatCount="1"
+              begin="0.2s; +5.2s"
+              keyTimes="0;0.5;1"
+            />
+          </ellipse>
+        </svg>
+      `;
+    }
 
     if (this.isChatOpen) {
       this.chatElements.input.focus();
@@ -901,6 +928,11 @@ export class KipAI {
         if (savedSettings) {
           this.settings = JSON.parse(savedSettings);
           this.chatElements.audioToggle.checked = this.settings.enabledAudio;
+
+          // If chat was open, toggle it
+          if (this.settings.isChatOpen) {
+            this.toggleChat();
+          }
         }
       } catch (error) {
         console.error('Error loading settings from localStorage:', error);
