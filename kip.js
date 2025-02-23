@@ -857,9 +857,8 @@ export class KipAI {
         * User interaction history
         * Knowledge sources and documentation
       - Guide users step by step through their tasks using visual aids and clear instructions
-      - Use highlighting tools when needed to point users to specific elements
+      - Use highlightPageElement tool when needed to point users to specific elements
       - Ensure users successfully complete their intended actions
-      - Adapt guidance based on user interactions and feedback
 
       TOOLS:
       ${this.formatFunctionDefinitions()}
@@ -868,19 +867,19 @@ export class KipAI {
       - Always be concise and direct in your responses.
       - Break the problem into smaller steps and explain to the user what steps need to follow
       - Always highlight to the user where to press/navigate by using highlightPageElement
-      - Monitor user interactions after highlighting:
-        * When user clicks the correct element, remove current highlight and highlight the next element in sequence
-        * If the user clicks elsewhere, guide them back to the highlighted element
       - Each step should follow this pattern:
-        1. Highlight the target element
-        2. Wait for correct interaction
-        3. Remove current highlight and immediately highlight next element
-        4. Repeat until task is complete
-      - Keep track of the current highlighted element and user's progress
+        1. Highlight the target element.
+        2. Wait for correct interaction.
+        3. Remove current highlight and immediately highlight next element.
+        4. Repeat until task is complete.
+      - Keep track of the current highlighted element and user's progress.
+      - If you mention that you will highlight an element then ALWAYS use highlightPageElement to highlight it.
+      - !!NEVER!! tell to the user if you are going to highlight or remove a highlight, just use the tools.
 
       Remember to: 
-      - Chain the remove and highlight commands together when transitioning between steps
-      - Remove the highlight step if it's not needed anymore.`.trim();
+      - Chain the removeActiveHighlight and highlightPageElement commands together when transitioning between steps
+      - Remove the highlight step if it's not needed anymore.
+      `.trim();
   }
 
   // Initialize chat with Gemini
@@ -902,7 +901,7 @@ export class KipAI {
       throw new Error('Failed to capture viewport');
     }
 
-    const htmlContent = document.documentElement.outerHTML;
+    const htmlContent = document.body.innerHTML;
 
     return {
       text: `${message}

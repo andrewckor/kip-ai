@@ -14,6 +14,7 @@ export const chatStyles = {
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     border-radius: 10px;
     overflow: hidden;
+    z-index: 99999;
   `,
   chatMessages: `
     flex: 1;

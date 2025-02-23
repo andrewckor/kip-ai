@@ -6,6 +6,7 @@ export const cursorStyles = {
     position: absolute;
     animation: floatAnimation 3s ease-in-out infinite;
     pointer-events: none;
+    z-index: 99999;
   `,
   floatingPoint: `
     transform-origin: center;
