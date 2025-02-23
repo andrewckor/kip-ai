@@ -1,7 +1,7 @@
 import { cursorStyles } from './cursor-styles.js';
 
 export const CURSOR_IMAGE = `<svg
-      id="cursor"
+      id="cursor-hand"
       style="${cursorStyles.cursor}"
       width="394"
       height="420"

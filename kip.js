@@ -505,12 +505,12 @@ export class KipAI {
 
   // Move floating cursor
   moveFloatingCursor(x, y) {
-    let cursor = document.querySelector('#cursor');
+    let cursor = document.querySelector('#cursor-hand');
     if (!cursor) {
       cursor = document.createElement('div');
       cursor.id = 'cursor';
       cursor.innerHTML = CURSOR_IMAGE;
-      cursor.style.position = 'fixed';
+      cursor.style.position = 'absolute';
       document.body.appendChild(cursor);
     }
 
@@ -523,7 +523,7 @@ export class KipAI {
 
   // Remove active highlight
   removeActiveHighlight() {
-    const cursor = document.querySelector('.floating-hand');
+    const cursor = document.querySelector('#cursor-hand');
 
     if (cursor) {
       cursor.remove();
@@ -901,19 +901,6 @@ export class KipAI {
         3. Remove current highlight and immediately highlight next element
         4. Repeat until task is complete
       - Keep track of the current highlighted element and user's progress
-
-      EXAMPLE RESPONSE PATTERN:
-      When user clicks the correct element, respond like this:
-      "Great! You've clicked the correct button. Now let's move to the next step."
-      [Call removeActiveHighlight]
-      [Call highlightPageElement for the next element]
-      "Now click here to continue..."
-
-      Or when moving between sections:
-      "Perfect! Now let's go to the form section."
-      [Call removeActiveHighlight]
-      [Call highlightPageElement for the 'Buy now' link]
-      "Click 'Buy Now' to see the application form."
 
       Remember to: 
       - Chain the remove and highlight commands together when transitioning between steps
