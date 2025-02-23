@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Careers at TechVision - Join Our Team</title>
+    <title>Careers at ElevenTabs - Join Our Team</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
-        --primary-color: #4299e1;
+        --primary-color: #000;
         --primary-dark: #3182ce;
         --text-primary: #2d3748;
         --text-secondary: #4a5568;
@@ -50,7 +50,6 @@
         background-color: white;
         padding: 20px;
         border-radius: var(--radius-md);
-        box-shadow: var(--shadow-sm);
         margin-bottom: 40px;
       }
 
@@ -63,7 +62,7 @@
       .nav-link {
         text-decoration: none;
         color: var(--text-secondary);
-        padding: 10px 20px;
+        padding: 8px 16px;
         border-radius: var(--radius-sm);
         transition: all 0.2s ease;
         font-weight: 500;
@@ -71,11 +70,10 @@
 
       .nav-link:hover {
         background-color: var(--bg-card);
-        color: var(--text-primary);
+        color: var(--primary-color);
       }
 
       .nav-link.active {
-        background-color: var(--primary-color);
         color: white;
       }
 
@@ -117,6 +115,7 @@
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 24px;
         margin-top: 32px;
+        list-style: none;
       }
 
       .benefit-card {
@@ -133,10 +132,11 @@
       /* Job Positions */
 
       #positions-section ul {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        display: flex;
+        flex-direction: column;
         gap: 24px;
         padding: 0;
+        list-style: none;
       }
 
       .position-card {
@@ -145,6 +145,8 @@
         border-radius: var(--radius-sm);
         border: 1px solid var(--border-color);
         transition: all 0.2s ease;
+        width: 100%;
+        cursor: pointer;
       }
 
       .position-card:hover {
@@ -363,6 +365,7 @@
         display: flex;
         gap: 24px;
         align-items: center;
+        margin: 0;
       }
 
       .header-nav a {
@@ -388,6 +391,245 @@
           flex-wrap: wrap;
           justify-content: center;
         }
+      }
+
+      /* Hero Section Styles */
+      .hero-section {
+        position: relative;
+        height: 600px;
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)),
+          url('https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2000&q=80');
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: white;
+        margin: -40px -20px 60px -20px;
+        width: calc(100% + 40px);
+      }
+
+      .hero-content {
+        max-width: 900px;
+        padding: 0 20px;
+        animation: fadeInUp 1s ease-out;
+      }
+
+      .hero-content h1 {
+        font-size: 4rem;
+        margin-bottom: 24px;
+        font-weight: 700;
+        line-height: 1.2;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .hero-content p {
+        font-size: 1.75rem;
+        color: rgba(255, 255, 255, 0.95);
+        margin-bottom: 40px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.4;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .hero-cta {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 16px 32px;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1.25rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+      }
+
+      .hero-cta:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .hero-section {
+          height: 500px;
+          margin: -20px -20px 40px -20px;
+        }
+
+        .hero-content h1 {
+          font-size: 2.75rem;
+        }
+
+        .hero-content p {
+          font-size: 1.25rem;
+        }
+
+        .hero-cta {
+          padding: 14px 28px;
+          font-size: 1.1rem;
+        }
+      }
+      /* Team Section Styles */
+      .team-section {
+        margin: 60px 0;
+        text-align: center;
+      }
+
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin-top: 40px;
+      }
+
+      .team-member {
+        background: white;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .team-member:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .team-member img {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+      }
+
+      .team-member-info {
+        padding: 20px;
+      }
+
+      .team-member-info h4 {
+        margin: 0 0 5px;
+        color: var(--text-primary);
+        font-size: 1.2rem;
+      }
+
+      .team-member-info p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 768px) {
+        .hero-section {
+          height: 400px;
+        }
+
+        .hero-content h1 {
+          font-size: 2.5rem;
+        }
+
+        .hero-content p {
+          font-size: 1.2rem;
+        }
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        overflow-y: auto;
+      }
+
+      .modal-content {
+        position: relative;
+        background-color: white;
+        margin: 40px auto;
+        padding: 40px;
+        max-width: 800px;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--text-light);
+        transition: color 0.2s ease;
+      }
+
+      .modal-close:hover {
+        color: var(--text-primary);
+      }
+
+      .job-details h2 {
+        margin-bottom: 8px;
+      }
+
+      .job-meta {
+        color: var(--text-light);
+        margin-bottom: 24px;
+      }
+
+      .job-section {
+        margin-bottom: 32px;
+      }
+
+      .job-section h3 {
+        color: var(--text-primary);
+        margin-bottom: 16px;
+      }
+
+      .job-section ul {
+        list-style-type: disc;
+        padding-left: 20px;
+        color: var(--text-secondary);
+      }
+
+      .job-section ul li {
+        margin-bottom: 8px;
+      }
+
+      .apply-button {
+        width: 100%;
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 14px 0;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.2s ease;
+        text-align: center;
+        width: 100%;
+        margin-top: 24px;
+      }
+
+      .apply-button:hover {
+        background-color: var(--primary-dark);
       }
     </style>
   </head>
@@ -430,66 +672,170 @@
                 </svg>
               </div>
               <div class="logo-text">
-                <span>TechVision</span>
-                <span>INNOVATIONS</span>
+                <span>ElevenTabs</span>
+                <span>AI SOLUTIONS</span>
               </div>
             </div>
           </a>
+          <nav class="header-nav">
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; gap: 24px">
+              <li>
+                <a href="#" class="nav-link" data-section="about">About Us</a>
+              </li>
+              <li>
+                <a href="#" class="nav-link" data-section="positions">Careers</a>
+              </li>
+              <li>
+                <a href="#" class="nav-link" data-section="apply">Apply</a>
+              </li>
+              <li>
+                <a href="#" class="nav-link" data-section="contact">Contact</a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
     </header>
 
-    <div id="canvas-container">
-      <nav>
-        <ul style="list-style: none; padding: 0; margin: 0">
-          <li>
-            <a href="#" class="nav-link" data-section="about">About Us</a>
-          </li>
-          <li>
-            <a href="#" class="nav-link" data-section="positions">Open Positions</a>
-          </li>
-          <li>
-            <a href="#" class="nav-link" data-section="apply">Apply Now</a>
-          </li>
-          <li>
-            <a href="#" class="nav-link" data-section="contact">Contact</a>
-          </li>
-        </ul>
-      </nav>
+    <div class="hero-section">
+      <div class="hero-content">
+        <h1>Shape the Future with Us</h1>
+        <p>
+          Join a team of innovators, dreamers, and doers who are transforming the tech landscape
+        </p>
+        <a
+          href="#"
+          class="hero-cta"
+          onclick="document.querySelector('[data-section=\'apply\']').click()"
+          >Join Our Team</a
+        >
+      </div>
+    </div>
 
+    <div id="canvas-container">
       <div id="content-sections">
         <div id="about-section" class="content-section">
           <h2>Join Our Mission</h2>
           <p>
-            At TechVision, we're not just building software – we're shaping the future of
+            At ElevenTabs, we're not just building software – we're shaping the future of
             technology. Our team of passionate innovators works on cutting-edge solutions that
-            impact millions of users worldwide.
+            impact millions of users worldwide. Through our commitment to excellence and innovation,
+            we're revolutionizing how businesses and people interact with technology.
           </p>
           <p>
             We believe in fostering a culture of creativity, collaboration, and continuous learning.
             Our diverse team brings together talent from various backgrounds, creating an
-            environment where great ideas can flourish.
+            environment where great ideas can flourish. At ElevenTabs, every voice matters and every
+            contribution counts towards our shared success.
           </p>
+
+          <div class="team-section">
+            <h3>Meet Our Team</h3>
+            <div class="team-grid">
+              <div class="team-member">
+                <img
+                  src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=800&q=80"
+                  alt="Sarah Chen"
+                />
+                <div class="team-member-info">
+                  <h4>Sarah Chen</h4>
+                  <p>Engineering Director</p>
+                </div>
+              </div>
+              <div class="team-member">
+                <img
+                  src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=800&q=80"
+                  alt="Michael Rodriguez"
+                />
+                <div class="team-member-info">
+                  <h4>Michael Rodriguez</h4>
+                  <p>Senior Product Designer</p>
+                </div>
+              </div>
+              <div class="team-member">
+                <img
+                  src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80"
+                  alt="Emily Taylor"
+                />
+                <div class="team-member-info">
+                  <h4>Emily Taylor</h4>
+                  <p>Frontend Lead</p>
+                </div>
+              </div>
+              <div class="team-member">
+                <img
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80"
+                  alt="David Kim"
+                />
+                <div class="team-member-info">
+                  <h4>David Kim</h4>
+                  <p>Backend Architect</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>Why ElevenTabs?</h3>
           <div class="benefits-grid">
             <div class="benefit-card">
               <h4>Remote-First Culture</h4>
-              <p>Work from anywhere in the world with our flexible remote policy</p>
+              <p>
+                Work from anywhere in the world with our flexible remote policy. Enjoy the freedom
+                to create your ideal work-life balance while staying connected with our global team.
+              </p>
             </div>
             <div class="benefit-card">
               <h4>Competitive Benefits</h4>
-              <p>Comprehensive health coverage, 401(k) matching, and equity options</p>
+              <p>
+                Comprehensive health coverage, 401(k) matching, equity options, and generous PTO. We
+                invest in your well-being because healthy, happy employees do their best work.
+              </p>
             </div>
             <div class="benefit-card">
               <h4>Growth Opportunities</h4>
-              <p>Continuous learning with education stipends and mentorship programs</p>
+              <p>
+                Continuous learning with education stipends, mentorship programs, and career
+                development paths. We're committed to helping you reach your full potential.
+              </p>
             </div>
+            <div class="benefit-card">
+              <h4>Innovation Fund</h4>
+              <p>
+                Access to our innovation fund for pursuing creative projects and experimenting with
+                new technologies. Your ideas could be the next big breakthrough.
+              </p>
+            </div>
+            <div class="benefit-card">
+              <h4>Work-Life Harmony</h4>
+              <p>
+                Flexible hours, wellness programs, and family-friendly policies. We understand that
+                life happens, and we're here to support you every step of the way.
+              </p>
+            </div>
+            <div class="benefit-card">
+              <h4>Global Community</h4>
+              <p>
+                Join a diverse, inclusive community of innovators from over 20 countries. Regular
+                virtual events, hackathons, and team building activities keep us connected.
+              </p>
+            </div>
+          </div>
+
+          <div style="margin-top: 32px">
+            <h3>Our Values</h3>
+            <p>
+              Innovation isn't just a buzzword at ElevenTabs—it's in our DNA. We encourage
+              experimentation, celebrate creative solutions, and learn from our failures. Our
+              commitment to transparency, ethical technology, and sustainable practices drives
+              everything we do.
+            </p>
           </div>
         </div>
 
         <div id="positions-section" class="content-section">
           <h2>Current Open Positions</h2>
           <ul>
-            <li class="position-card">
+            <li class="position-card" data-position="senior-frontend">
               <h3>Senior Frontend Developer</h3>
               <p>Remote • Full-time</p>
               <p>
@@ -497,14 +843,14 @@
                 modern web technologies.
               </p>
             </li>
-            <li class="position-card">
+            <li class="position-card" data-position="backend">
               <h3>Backend Engineer</h3>
               <p>Remote • Full-time</p>
               <p>
                 Build scalable microservices and APIs using Node.js, Python, and cloud technologies.
               </p>
             </li>
-            <li class="position-card">
+            <li class="position-card" data-position="fullstack">
               <h3>Full Stack Developer</h3>
               <p>Remote • Full-time</p>
               <p>
@@ -512,7 +858,7 @@
                 delight our users.
               </p>
             </li>
-            <li class="position-card">
+            <li class="position-card" data-position="product-designer">
               <h3>Senior Product Designer</h3>
               <p>Remote • Full-time</p>
               <p>
@@ -520,7 +866,70 @@
                 solutions.
               </p>
             </li>
+            <li class="position-card" data-position="devops">
+              <h3>DevOps Engineer</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Build and maintain our cloud infrastructure, implement CI/CD pipelines, and ensure
+                system reliability using tools like AWS, Kubernetes, and Docker.
+              </p>
+            </li>
+            <li class="position-card" data-position="ml-engineer">
+              <h3>Machine Learning Engineer</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Develop and deploy machine learning models to power our AI-driven features using
+                TensorFlow, PyTorch, and modern ML technologies.
+              </p>
+            </li>
+            <li class="position-card" data-position="security">
+              <h3>Security Engineer</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Protect our systems and user data by implementing security best practices,
+                conducting security audits, and maintaining compliance standards.
+              </p>
+            </li>
+            <li class="position-card" data-position="product-manager">
+              <h3>Technical Product Manager</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Drive product strategy and execution, working closely with engineering teams to
+                deliver innovative solutions that meet user needs.
+              </p>
+            </li>
+            <li class="position-card" data-position="qa">
+              <h3>QA Automation Engineer</h3>
+              <p>Remote • Full-time</p>
+              <p>
+                Design and implement automated testing frameworks to ensure product quality using
+                tools like Selenium, Cypress, and Jest.
+              </p>
+            </li>
           </ul>
+        </div>
+
+        <!-- Job Details Modal -->
+        <div id="job-modal" class="modal">
+          <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div class="job-details">
+              <!-- Content will be dynamically inserted here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Job Details Section -->
+        <div id="job-details-section" class="content-section">
+          <div class="job-details">
+            <!-- Content will be dynamically inserted here -->
+          </div>
+          <button
+            onclick="document.querySelector('[data-section=\'positions\']').click()"
+            style="margin-top: 32px; max-width: 200px"
+          >
+            Back to Positions
+          </button>
         </div>
 
         <div id="apply-section" class="content-section">
@@ -536,22 +945,6 @@
             <div class="form-group">
               <label for="email">Email Address</label>
               <input type="email" id="email" placeholder="Enter your email address" required />
-            </div>
-
-            <div class="form-group">
-              <label for="phone">Phone Number</label>
-              <input type="tel" id="phone" placeholder="Enter your phone number" />
-            </div>
-
-            <div class="form-group">
-              <label for="position">Position Applied For</label>
-              <select id="position" required>
-                <option value="">Select a position</option>
-                <option value="senior-frontend">Senior Frontend Developer</option>
-                <option value="backend">Backend Engineer</option>
-                <option value="fullstack">Full Stack Developer</option>
-                <option value="product-designer">Senior Product Designer</option>
-              </select>
             </div>
 
             <div class="form-group">
@@ -593,7 +986,7 @@
           <p>Have questions about our open positions or the application process?</p>
           <p>
             Email us at
-            <a href="mailto:careers@techvision.com" class="contact-link">careers@techvision.com</a>
+            <a href="mailto:careers@eleventabs.com" class="contact-link">careers@eleventabs.com</a>
           </p>
           <p>Our recruiting team typically responds within 48 hours.</p>
         </div>
@@ -604,23 +997,147 @@
       document.addEventListener('DOMContentLoaded', function () {
         const navLinks = document.querySelectorAll('.nav-link');
         const sections = document.querySelectorAll('.content-section');
+        const jobDetails = document.querySelector('.job-details');
 
         // Show About section by default
         document.querySelector('#about-section').classList.add('active');
         document.querySelector('[data-section="about"]').classList.add('active');
 
+        // Job details data
+        const jobDetailsData = {
+          'senior-frontend': {
+            title: 'Senior Frontend Developer',
+            location: 'Remote',
+            type: 'Full-time',
+            description:
+              'We are seeking an experienced Frontend Developer to lead the development of our next-generation web applications.',
+            responsibilities: [
+              'Architect and implement complex frontend solutions using React and TypeScript',
+              'Lead code reviews and mentor junior developers',
+              'Collaborate with designers to implement pixel-perfect, responsive interfaces',
+              'Optimize application performance and implement best practices',
+              'Contribute to technical decision-making and architecture discussions',
+            ],
+            requirements: [
+              '5+ years of experience with modern JavaScript and frontend development',
+              'Expert knowledge of React, TypeScript, and modern web technologies',
+              'Experience with state management solutions (Redux, MobX, etc.)',
+              'Strong understanding of web performance optimization',
+              'Experience with modern build tools and CI/CD pipelines',
+            ],
+            benefits: [
+              'Competitive salary and equity package',
+              'Flexible working hours and remote-first culture',
+              'Health, dental, and vision insurance',
+              'Professional development budget',
+              'Home office setup allowance',
+            ],
+          },
+          backend: {
+            title: 'Backend Engineer',
+            location: 'Remote',
+            type: 'Full-time',
+            description:
+              'Join our backend team to build scalable microservices and APIs that power our platform.',
+            responsibilities: [
+              'Design and implement scalable backend services',
+              'Work with databases and optimize query performance',
+              'Implement security best practices and data protection measures',
+              'Collaborate with frontend teams to design and implement APIs',
+              'Monitor and optimize system performance',
+            ],
+            requirements: [
+              '3+ years of experience with Node.js and/or Python',
+              'Strong knowledge of database design and optimization',
+              'Experience with cloud platforms (AWS, GCP, or Azure)',
+              'Understanding of microservices architecture',
+              'Experience with API design and implementation',
+            ],
+            benefits: [
+              'Competitive salary and equity package',
+              'Flexible working hours and remote-first culture',
+              'Health, dental, and vision insurance',
+              'Professional development budget',
+              'Home office setup allowance',
+            ],
+          },
+          // Add similar objects for other positions
+        };
+
+        // Navigation handling
         navLinks.forEach(link => {
           link.addEventListener('click', e => {
             e.preventDefault();
-
-            // Remove active class from all links and sections
             navLinks.forEach(l => l.classList.remove('active'));
             sections.forEach(s => s.classList.remove('active'));
-
-            // Add active class to clicked link and corresponding section
             const sectionId = link.getAttribute('data-section');
             link.classList.add('active');
             document.querySelector(`#${sectionId}-section`).classList.add('active');
+
+            // Toggle hero section visibility
+            const heroSection = document.querySelector('.hero-section');
+            if (sectionId === 'about') {
+              heroSection.style.display = 'flex';
+              heroSection.style.animation = 'fadeIn 0.5s ease-out';
+            } else {
+              heroSection.style.display = 'none';
+            }
+          });
+        });
+
+        // Position card click handling
+        document.querySelectorAll('.position-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const position = card.getAttribute('data-position');
+            const details = jobDetailsData[position] || jobDetailsData['senior-frontend'];
+
+            const detailsHTML = `
+              <h2>${details.title}</h2>
+              <div class="job-meta">${details.location} • ${details.type}</div>
+              <div class="job-section">
+                <p>${details.description}</p>
+              </div>
+              <div class="job-section">
+                <h3>Responsibilities</h3>
+                <ul>
+                  ${details.responsibilities.map(r => `<li>${r}</li>`).join('')}
+                </ul>
+              </div>
+              <div class="job-section">
+                <h3>Requirements</h3>
+                <ul>
+                  ${details.requirements.map(r => `<li>${r}</li>`).join('')}
+                </ul>
+              </div>
+              <div class="job-section">
+                <h3>Benefits</h3>
+                <ul>
+                  ${details.benefits.map(b => `<li>${b}</li>`).join('')}
+                </ul>
+              </div>
+              <a href="#" class="apply-button" onclick="
+                const applyLink = document.querySelector('[data-section=\\'apply\\']');
+                applyLink.click();
+                setTimeout(() => {
+                  document.getElementById('position').value = '${position}';
+                }, 100);
+                return false;
+              ">Apply Now</a>
+            `;
+
+            // Update job details content and show the section
+            document.querySelector('#job-details-section .job-details').innerHTML = detailsHTML;
+            sections.forEach(s => s.classList.remove('active'));
+            document.querySelector('#job-details-section').classList.add('active');
+
+            // Update navigation state
+            navLinks.forEach(l => l.classList.remove('active'));
+
+            // Hide hero section
+            document.querySelector('.hero-section').style.display = 'none';
+
+            // Scroll to top
+            window.scrollTo(0, 0);
           });
         });
 
