@@ -46,14 +46,15 @@ export class KipAI {
       },
       {
         name: 'removeActiveHighlight',
-        description: 'Remove any active highlight from the page when the user moved to next step',
+        description:
+          'Remove any active highlight from the page when the user moved to next step or is not needed anymore',
         parameters: {
           type: 'object',
           properties: {
             selector: {
               type: 'string',
               description:
-                'The selector parameter is ignored but required by the API for consistency',
+                "The CSS selector or ID of the element to remove the highlight from (e.g., '#email' or '.submit-button')",
             },
           },
           required: ['selector'],
@@ -72,6 +73,9 @@ export class KipAI {
 
   // Helper method to get current domain
   getCurrentDomain() {
+    if (window.location.hostname.includes('http://localhost')) {
+      return (window.location.hostname + window.location.pathname).replace(/[./]/g, '_');
+    }
     return window.location.hostname || 'default';
   }
 
@@ -600,6 +604,20 @@ export class KipAI {
     this.renderMessages();
   }
 
+  // Helper method to create chat with history
+  createChatWithHistory() {
+    return this.model.startChat({
+      history: [
+        {
+          role: 'user',
+          parts: [{ text: this.getInitialPrompt() }],
+        },
+        ...this.chatHistory.slice(0, -1),
+      ],
+      tools: [{ functionDeclarations: this.functionDefinitions }],
+    });
+  }
+
   // Handle sending a message
   async handleSendMessage() {
     if (!this.chatElements?.input) return;
@@ -607,20 +625,22 @@ export class KipAI {
     const message = this.chatElements.input.value.trim();
     if (!message) return;
 
+    // Add message to view and history immediately
     this.addMessage(message, true);
     this.chatHistory.push({ role: 'user', parts: [{ text: message }] });
-    this.chatElements.input.value = '';
-
     this.trimToLimit();
     this.saveMessages();
 
+    this.chatElements.input.value = '';
+
     try {
       const fullContext = await this.createFullMessageWithContext(`User Message: ${message}`);
-      const result = await this.chat.sendMessage([fullContext.text, fullContext.image]);
-
+      const chat = this.createChatWithHistory();
+      const result = await chat.sendMessage([fullContext.text, fullContext.image]);
       const response = await this.handleAIResponse(result.response);
 
       if (response) {
+        // Add only the model response to history and save
         this.chatHistory.push({ role: 'model', parts: [{ text: response }] });
         this.trimToLimit();
         this.saveMessages();
@@ -641,69 +661,64 @@ export class KipAI {
       .join('\n');
   }
 
+  // Get initial prompt for chat initialization
+  getInitialPrompt() {
+    return `You are an AI assistant helping users navigate ${window.document.title}.
+      Your name is "Kip".
+
+      Current url: ${window.location.origin}/${window.location.pathname}
+
+      GOAL:
+      - Help users achieve their requests by utilizing all available information:
+        * Screenshots of the current page state
+        * HTML structure and content
+        * User interaction history
+        * Knowledge sources and documentation
+      - Guide users step by step through their tasks using visual aids and clear instructions
+      - Use highlighting tools when needed to point users to specific elements
+      - Ensure users successfully complete their intended actions
+      - Adapt guidance based on user interactions and feedback
+
+      TOOLS:
+      ${this.formatFunctionDefinitions()}
+      
+      RULES:
+      - Always be concise and direct in your responses.
+      - Break the problem into smaller steps and explain to the user what steps need to follow
+      - Always highlight to the user where to press/navigate by using highlightPageElement
+      - Monitor user interactions after highlighting:
+        * When user clicks the correct element, remove current highlight and highlight the next element in sequence
+        * If the user clicks elsewhere, guide them back to the highlighted element
+      - Each step should follow this pattern:
+        1. Highlight the target element
+        2. Wait for correct interaction
+        3. Remove current highlight and immediately highlight next element
+        4. Repeat until task is complete
+      - Keep track of the current highlighted element and user's progress
+
+      EXAMPLE RESPONSE PATTERN:
+      When user clicks the correct element, respond like this:
+      "Great! You've clicked the correct button. Now let's move to the next step."
+      [Call removeActiveHighlight]
+      [Call highlightPageElement for the next element]
+      "Now click here to continue..."
+
+      Or when moving between sections:
+      "Perfect! Now let's go to the form section."
+      [Call removeActiveHighlight]
+      [Call highlightPageElement for the 'Buy now' link]
+      "Click 'Buy Now' to see the application form."
+
+      Remember to: 
+      - Chain the remove and highlight commands together when transitioning between steps
+      - Remove the highlight step if it's not needed anymore.`.trim();
+  }
+
   // Initialize chat with Gemini
   async initChat() {
     try {
+      // Remove history from initial chat creation
       this.chat = this.model.startChat({
-        history: [
-          {
-            role: 'user',
-            parts: [
-              {
-                text: `
-                  You are an AI assistant helping users navigate ${window.document.title}.
-                  Your name is "Kip".
-
-                  Current url: ${window.location.origin}/${window.location.pathname}
-
-                  GOAL:
-                  - Help users achieve their requests by utilizing all available information:
-                    * Screenshots of the current page state
-                    * HTML structure and content
-                    * User interaction history
-                    * Knowledge sources and documentation
-                  - Guide users step by step through their tasks using visual aids and clear instructions
-                  - Use highlighting tools when needed to point users to specific elements
-                  - Ensure users successfully complete their intended actions
-                  - Adapt guidance based on user interactions and feedback
-
-                  TOOLS:
-                  ${this.formatFunctionDefinitions()}
-                  
-                  RULES:
-                  - Always be concise and direct in your responses.
-                  - Break the problem into smaller steps and explain to the user what steps need to follow
-                  - Always highlight to the user where to press/navigate by using highlightPageElement
-                  - Monitor user interactions after highlighting:
-                    * When user clicks the correct element, remove current highlight and highlight the next element in sequence
-                    * If the user clicks elsewhere, guide them back to the highlighted element
-                  - Each step should follow this pattern:
-                    1. Highlight the target element
-                    2. Wait for correct interaction
-                    3. Remove current highlight and immediately highlight next element
-                    4. Repeat until task is complete
-                  - Keep track of the current highlighted element and user's progress
-
-                  EXAMPLE RESPONSE PATTERN:
-                  When user clicks the correct element, respond like this:
-                  "Great! You've clicked the correct button. Now let's move to the next step."
-                  [Call removeActiveHighlight]
-                  [Call highlightPageElement for the next element]
-                  "Now click here to continue..."
-
-                  Or when moving between sections:
-                  "Perfect! Now let's go to the form section."
-                  [Call removeActiveHighlight]
-                  [Call highlightPageElement for the 'Buy now' link]
-                  "Click 'Buy Now' to see the application form."
-
-                  Remember to chain the remove and highlight commands together when transitioning between steps or remove the highlight step if it's not needed anymore.
-                  `,
-              },
-            ],
-          },
-          ...this.chatHistory,
-        ],
         tools: [{ functionDeclarations: this.functionDefinitions }],
       });
     } catch (error) {
@@ -727,12 +742,12 @@ export class KipAI {
       User Viewport Size: ${window.innerWidth}x${window.innerHeight}
       Document Size: ${document.documentElement.scrollWidth}x${document.documentElement.scrollHeight}
 
-Page HTML:
-${htmlContent}`,
+      Page HTML:
+      ${htmlContent}`,
       image: {
         inlineData: {
           data: base64Image,
-          mimeType: 'image/png',
+          mimeType: 'image/jpeg',
         },
       },
     };
@@ -783,6 +798,14 @@ ${htmlContent}`,
   // Setup event tracking
   setupEventTracking() {
     window.addEventListener('click', e => {
+      // Ignore clicks inside the chat container or pill button
+      if (
+        this.chatElements.container.contains(e.target) ||
+        this.chatElements.pill.contains(e.target)
+      ) {
+        return;
+      }
+
       this.trackInteraction('click', {
         target: {
           tagName: e.target.tagName,
@@ -807,18 +830,17 @@ ${htmlContent}`,
       timestamp: new Date().toISOString(),
     });
 
-    if (this.shouldObserveInteractions && this.chat && type === 'click') {
+    if (this.shouldObserveInteractions && type === 'click') {
       const latestInteraction = {
         type,
         details,
         timestamp: new Date().toISOString(),
       };
 
-      const interactionMessage = `User performed click action: ${JSON.stringify(
-        latestInteraction,
-        null,
-        2
-      )}`;
+      const interactionMessage = `User performed click action: 
+      ${JSON.stringify(latestInteraction, null, 2)}
+      
+	    - If the user clicked the correct section/button/element then remove the active highlight using removeActiveHighlight.`.trim();
 
       this.chatHistory.push({ role: 'user', parts: [{ text: interactionMessage }] });
       this.trimToLimit();
@@ -827,7 +849,8 @@ ${htmlContent}`,
       (async () => {
         try {
           const fullContext = await this.createFullMessageWithContext(interactionMessage);
-          const result = await this.chat.sendMessage([fullContext.text, fullContext.image]);
+          const chat = this.createChatWithHistory();
+          const result = await chat.sendMessage([fullContext.text, fullContext.image]);
           await this.handleAIResponse(result.response);
         } catch (error) {
           console.error('Error notifying AI of interaction:', error);
