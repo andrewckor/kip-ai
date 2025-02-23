@@ -1,9 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import html2canvas from 'html2canvas';
 import { config } from './config.js';
 import { chatStyles } from './includes/styles.js';
 import { CURSOR_IMAGE } from './includes/cursor-image.js';
-import { cursorStyles } from './includes/cursor-styles.js';
+import { captureViewport } from './includes/image-capture.js';
 
 // Initialize Gemini with function calling
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
@@ -397,6 +396,16 @@ function saveMessages() {
   }
 }
 
+// Helper function to migrate old chat history format
+function migrateOldChatHistory(history) {
+  return history.map(entry => {
+    if (entry.role === 'assistant') {
+      return { ...entry, role: 'model' };
+    }
+    return entry;
+  });
+}
+
 function loadMessages() {
   if (typeof localStorage !== 'undefined') {
     try {
@@ -409,7 +418,7 @@ function loadMessages() {
       }
 
       if (savedHistory) {
-        chatHistory = JSON.parse(savedHistory);
+        chatHistory = migrateOldChatHistory(JSON.parse(savedHistory));
       }
 
       trimToLimit(); // Ensure loaded messages are within limit
@@ -502,7 +511,7 @@ async function handleSendMessage() {
 
     // Add assistant's response to chat history
     if (response) {
-      chatHistory.push({ role: 'assistant', parts: [{ text: response }] });
+      chatHistory.push({ role: 'model', parts: [{ text: response }] });
       trimToLimit(); // Ensure we stay within limit after AI response
       saveMessages(); // Save after AI response
     }
@@ -626,44 +635,6 @@ ${htmlContent}`,
       },
     },
   };
-}
-
-async function captureViewport() {
-  try {
-    // Create a temporary canvas for the screenshot
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.style.position = 'absolute';
-    tempCanvas.style.top = '-9999px';
-    tempCanvas.style.left = '-9999px';
-    document.body.appendChild(tempCanvas);
-
-    // Capture the screenshot
-    const screenshot = await html2canvas(document.documentElement, {
-      canvas: tempCanvas,
-      logging: false,
-      useCORS: true,
-      allowTaint: true,
-    });
-
-    // Convert to base64
-    const result = await new Promise(resolve => {
-      screenshot.toBlob(blob => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64Data = reader.result.split(',')[1];
-          resolve(base64Data);
-        };
-        reader.readAsDataURL(blob);
-      }, 'image/png');
-    });
-
-    // Clean up - remove the temporary canvas
-    document.body.removeChild(tempCanvas);
-    return result;
-  } catch (error) {
-    console.error('Error capturing viewport:', error);
-    return null;
-  }
 }
 
 async function handleFunctionCall(functionCall) {
