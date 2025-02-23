@@ -427,6 +427,7 @@ export class KipAI {
   // Remove active highlight
   removeActiveHighlight() {
     const cursor = document.querySelector('.floating-hand');
+
     if (cursor) {
       cursor.remove();
     }
@@ -439,7 +440,6 @@ export class KipAI {
     }
 
     this.shouldObserveInteractions = false;
-    return 'Highlight and cursor removed';
   }
 
   // Highlight page element
@@ -478,9 +478,9 @@ export class KipAI {
       this.moveFloatingCursor(cursorX, cursorY);
 
       this.shouldObserveInteractions = true;
-      return JSON.stringify(coordinates, null, 2);
+
+      return;
     }
-    return `Element with selector "${selector}" not found`;
   }
 
   // Helper method to trim messages to limit
@@ -706,7 +706,6 @@ export class KipAI {
         ],
         tools: [{ functionDeclarations: this.functionDefinitions }],
       });
-      console.log('Chat initialized successfully with previous history');
     } catch (error) {
       console.error('Error initializing chat:', error);
     }
@@ -724,8 +723,9 @@ export class KipAI {
     return {
       text: `${message}
 
-Current Page URL: ${window.location.href}
-Viewport Size: ${window.innerWidth}x${window.innerHeight}
+      Current Page URL: ${window.location.href}
+      User Viewport Size: ${window.innerWidth}x${window.innerHeight}
+      Document Size: ${document.documentElement.scrollWidth}x${document.documentElement.scrollHeight}
 
 Page HTML:
 ${htmlContent}`,
@@ -739,15 +739,14 @@ ${htmlContent}`,
   }
 
   // Handle function calls from Gemini
-  async handleFunctionCall(functionCall) {
+  handleFunctionCall(functionCall) {
     const { name, args } = functionCall;
 
     if (name === 'highlightPageElement') {
-      return this.highlightPageElement(args.selector);
+      this.highlightPageElement(args.selector);
     } else if (name === 'removeActiveHighlight') {
-      return this.removeActiveHighlight();
+      this.removeActiveHighlight();
     }
-    return `Function ${name} not implemented`;
   }
 
   // Handle AI response
@@ -769,7 +768,7 @@ ${htmlContent}`,
       const functionCalls = parts.filter(part => part.functionCall);
       if (functionCalls.length > 0) {
         for (const part of functionCalls) {
-          await this.handleFunctionCall(part.functionCall);
+          this.handleFunctionCall(part.functionCall);
         }
       }
 
