@@ -22,6 +22,7 @@ export class KipAI {
       enabledAudio: true,
     };
     this.currentAudio = null;
+    this.currentlyPlayingMessageId = null; // Add tracking for currently playing message
 
     // Initialize Gemini
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -594,13 +595,71 @@ export class KipAI {
 
     this.chatElements.messages.innerHTML = this.messages
       .map(
-        msg => `
-      <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}">
+        (msg, index) => `
+      <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}; position: relative;">
         <div style="white-space: pre-wrap;">${msg.content}</div>
+        ${
+          !msg.isUser
+            ? `
+          <button 
+            class="audio-control" 
+            data-message-id="${index}"
+            style="
+              background: none;
+              border: none;
+              cursor: pointer;
+              padding: 4px;
+              opacity: ${this.currentlyPlayingMessageId === index ? '1' : '0.5'};
+              transition: opacity 0.3s ease;
+              display: ${this.settings.enabledAudio ? 'block' : 'none'};
+              position: absolute;
+              top: 4px;
+              right: 4px;
+            "
+          >
+            ${
+              this.currentlyPlayingMessageId === index
+                ? `
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 6h12v12H6z" fill="currentColor"/>
+              </svg>
+            `
+                : `
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            `
+            }
+          </button>
+        `
+            : ''
+        }
       </div>
     `
       )
       .join('');
+
+    // Add click handlers for audio controls
+    const audioControls = this.chatElements.messages.querySelectorAll('.audio-control');
+    audioControls.forEach(control => {
+      control.addEventListener('click', async () => {
+        const messageId = parseInt(control.dataset.messageId);
+        if (this.currentlyPlayingMessageId === messageId) {
+          // Stop current audio
+          if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio = null;
+          }
+          this.currentlyPlayingMessageId = null;
+        } else {
+          // Play this message's audio
+          await this.speakText(this.messages[messageId].content, messageId);
+        }
+        this.renderMessages();
+      });
+    });
 
     this.chatElements.messages.scrollTop = this.chatElements.messages.scrollHeight;
     this.saveMessages();
@@ -624,7 +683,7 @@ export class KipAI {
 
     // Speak bot messages if audio is enabled
     if (!isUser) {
-      this.speakText(message);
+      this.speakText(message, this.messages.length - 1);
     }
   }
 
@@ -916,7 +975,7 @@ export class KipAI {
   }
 
   // Speak text using ElevenLabs
-  async speakText(text) {
+  async speakText(text, messageId = null) {
     if (!this.settings.enabledAudio) return;
 
     try {
@@ -960,15 +1019,22 @@ export class KipAI {
 
       // Create and play audio
       this.currentAudio = new Audio(url);
+      this.currentlyPlayingMessageId = messageId;
+      this.renderMessages();
+
       await this.currentAudio.play();
 
       // Clean up when done
       this.currentAudio.onended = () => {
         URL.revokeObjectURL(url);
         this.currentAudio = null;
+        this.currentlyPlayingMessageId = null;
+        this.renderMessages();
       };
     } catch (error) {
       console.error('Error speaking text:', error);
+      this.currentlyPlayingMessageId = null;
+      this.renderMessages();
     }
   }
 }
