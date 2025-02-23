@@ -205,22 +205,60 @@ const createChatContainer = () => {
   const chatContainer = document.createElement('div');
   chatContainer.innerHTML = `
     <div id="chat-container" style="${chatStyles.chatContainer} display: none; position: fixed; bottom: 80px; right: 20px; width: 350px; height: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); border-radius: 10px; overflow: hidden;">
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
-        <span style="font-weight: bold;">Chat History - ${getCurrentDomain()}</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3C7.02944 3 3 7.02944 3 12C3 13.8194 3.53987 15.5127 4.46815 16.9285L3.18198 20.8178L7.07127 19.5317C8.48713 20.4601 10.1806 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3Z" 
+              stroke="#007bff" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+            />
+            <path d="M8 12H16M12 8V16" 
+              stroke="#007bff" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span style="font-weight: bold; color: #2c3e50; font-size: 16px;">Kip AI</span>
+        </div>
         <button 
           id="clear-history" 
-          style="padding: 4px 8px; border: none; background: #dc3545; color: white; border-radius: 4px; cursor: pointer; font-size: 12px;"
-          onmouseover="this.style.background='#c82333'" 
-          onmouseout="this.style.background='#dc3545'"
-        >Clear History</button>
+          style="
+            padding: 6px 12px;
+            border: none;
+            background: #f8f9fa;
+            color: #6c757d;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          "
+          onmouseover="this.style.background='#e9ecef'; this.style.color='#495057';" 
+          onmouseout="this.style.background='#f8f9fa'; this.style.color='#6c757d';"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6H21M19 6V20C19 21.1046 18.1046 22 17 22H7C5.89543 22 5 21.1046 5 20V6M8 6V4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V6" 
+              stroke="currentColor" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"
+            />
+          </svg>
+          Clear
+        </button>
       </div>
       <div id="chat-messages" style="${chatStyles.chatMessages}"></div>
       <div id="chat-input-container" style="${chatStyles.chatInputContainer}">
         <input 
           type="text"
           id="chat-input"
-          placeholder="Type your message..."
-          value="How do I send my resume?"
+          placeholder="Type your message..."          
           style="${chatStyles.chatInput}"
         />
         <button 
@@ -257,9 +295,7 @@ const createChatContainer = () => {
 
   // Add clear history functionality
   chatElements.clearButton.addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear the chat history for this domain?')) {
-      clearDomainMessages();
-    }
+    clearDomainMessages();
   });
 
   // Add toggle functionality
