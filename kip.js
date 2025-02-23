@@ -291,6 +291,15 @@ async function handleSendMessage() {
   }
 }
 
+function formatFunctionDefinitions(definitions) {
+  return definitions
+    .map(
+      fn =>
+        ` ${fn.name}: - Description: ${fn.description} - Required parameters: ${fn.parameters.required.join(', ')}`
+    )
+    .join('\n');
+}
+
 // Initialize chat when the page loads
 let chatHistory = [];
 
@@ -317,15 +326,7 @@ async function initChat() {
                 - Adapt guidance based on user interactions and feedback
 
                 TOOLS:
-                ${functionDefinitions
-                  .map(
-                    fn => `
-                ${fn.name}:
-                - Description: ${fn.description}
-                - Required parameters: ${fn.parameters.required.join(', ')}
-                `
-                  )
-                  .join('\n')}
+                ${formatFunctionDefinitions(functionDefinitions)}
                 
                 RULES:
                 - Always be concise and direct in your responses.
