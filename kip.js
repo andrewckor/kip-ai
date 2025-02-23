@@ -23,6 +23,7 @@ export class KipAI {
     };
     this.currentAudio = null;
     this.currentlyPlayingMessageId = null; // Add tracking for currently playing message
+    this.loadingAudioMessageId = null; // Add tracking for loading state
 
     // Initialize Gemini
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -596,7 +597,11 @@ export class KipAI {
     this.chatElements.messages.innerHTML = this.messages
       .map(
         (msg, index) => `
-      <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}; position: relative;">
+      <div style="${chatStyles.message} ${msg.isUser ? chatStyles.userMessage : chatStyles.botMessage}; position: relative; ${
+        !msg.isUser && this.currentlyPlayingMessageId === index
+          ? 'background-color: rgba(0, 0, 0, 0.05); border-left: 3px solid #000000;'
+          : ''
+      } transition: all 0.3s ease;">
         <div style="white-space: pre-wrap;">${msg.content}</div>
         ${
           !msg.isUser
@@ -609,22 +614,42 @@ export class KipAI {
               border: none;
               cursor: pointer;
               padding: 4px;
-              opacity: ${this.currentlyPlayingMessageId === index ? '1' : '0.5'};
+              opacity: ${this.currentlyPlayingMessageId === index || this.loadingAudioMessageId === index ? '1' : '0.5'};
               transition: opacity 0.3s ease;
               display: ${this.settings.enabledAudio ? 'block' : 'none'};
               position: absolute;
               top: 4px;
               right: 4px;
+              z-index: 1;
             "
           >
             ${
-              this.currentlyPlayingMessageId === index
+              this.loadingAudioMessageId === index
                 ? `
+              <div class="simple-spinner" style="
+                width: 16px;
+                height: 16px;
+                border: 2px solid currentColor;
+                border-right-color: transparent;
+                border-radius: 50%;
+                animation: spin 0.75s linear infinite;
+                display: inline-block;
+              ">
+              </div>
+              <style>
+                @keyframes spin {
+                  from { transform: rotate(0deg); }
+                  to { transform: rotate(360deg); }
+                }
+              </style>
+            `
+                : this.currentlyPlayingMessageId === index
+                  ? `
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M6 6h12v12H6z" fill="currentColor"/>
               </svg>
             `
-                : `
+                  : `
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" stroke-width="2"/>
@@ -985,6 +1010,10 @@ export class KipAI {
         this.currentAudio = null;
       }
 
+      // Set loading state
+      this.loadingAudioMessageId = messageId;
+      this.renderMessages();
+
       const elevenlabs = new ElevenLabsClient({
         apiKey: config.ELEVENLABS_API_KEY,
       });
@@ -1017,6 +1046,9 @@ export class KipAI {
       const audioBlob = await response.blob();
       const url = URL.createObjectURL(audioBlob);
 
+      // Clear loading state
+      this.loadingAudioMessageId = null;
+
       // Create and play audio
       this.currentAudio = new Audio(url);
       this.currentlyPlayingMessageId = messageId;
@@ -1033,6 +1065,7 @@ export class KipAI {
       };
     } catch (error) {
       console.error('Error speaking text:', error);
+      this.loadingAudioMessageId = null;
       this.currentlyPlayingMessageId = null;
       this.renderMessages();
     }
