@@ -3,6 +3,7 @@ import { config } from './config.js';
 import { chatStyles } from './includes/styles.js';
 import { CURSOR_IMAGE } from './includes/cursor-image.js';
 import { captureViewport } from './includes/image-capture.js';
+import { ElevenLabsClient } from 'elevenlabs';
 
 export class KipAI {
   static MESSAGE_LIMIT = 50;
@@ -20,6 +21,7 @@ export class KipAI {
     this.settings = {
       enabledAudio: true,
     };
+    this.currentAudio = null;
 
     // Initialize Gemini
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -619,6 +621,11 @@ export class KipAI {
 
     this.trimToLimit();
     this.renderMessages();
+
+    // Speak bot messages if audio is enabled
+    if (!isUser) {
+      this.speakText(message);
+    }
   }
 
   // Helper method to create chat with history
@@ -905,6 +912,63 @@ export class KipAI {
       } catch (error) {
         console.error('Error loading settings from localStorage:', error);
       }
+    }
+  }
+
+  // Speak text using ElevenLabs
+  async speakText(text) {
+    if (!this.settings.enabledAudio) return;
+
+    try {
+      // Stop any currently playing audio
+      if (this.currentAudio) {
+        this.currentAudio.pause();
+        this.currentAudio = null;
+      }
+
+      const elevenlabs = new ElevenLabsClient({
+        apiKey: config.ELEVENLABS_API_KEY,
+      });
+
+      // Using a default voice ID for a female voice (Rachel)
+      const VOICE_ID = '21m00Tcm4TlvDq8ikWAM';
+
+      // Make the API request
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+        method: 'POST',
+        headers: {
+          Accept: 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': config.ELEVENLABS_API_KEY,
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.5,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const audioBlob = await response.blob();
+      const url = URL.createObjectURL(audioBlob);
+
+      // Create and play audio
+      this.currentAudio = new Audio(url);
+      await this.currentAudio.play();
+
+      // Clean up when done
+      this.currentAudio.onended = () => {
+        URL.revokeObjectURL(url);
+        this.currentAudio = null;
+      };
+    } catch (error) {
+      console.error('Error speaking text:', error);
     }
   }
 }
