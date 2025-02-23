@@ -210,65 +210,114 @@ export class KipAI {
           <div id="settings-menu" style="
             display: none;
             position: absolute;
-            top: 50px;
-            right: 10px;
-            background: white;
+            top: -200px;
+            right: 0;
+            left: 0;
+            background: #f8f9fa;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 12px;
+            padding: 16px;
             z-index: 1000;
+            border: 1px solid #e5e7eb;
+            opacity: 0;
+            transition: all 0.3s ease;
+            transform-origin: top;
           ">
             <div style="
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin-bottom: 12px;
-              padding-bottom: 8px;
-              border-bottom: 1px solid #eee;
+              font-size: 16px;
+              font-weight: 600;
+              color: #111827;
+              margin-bottom: 16px;
+              padding-bottom: 16px;
+              border-bottom: 1px solid #e5e7eb;
             ">
-              <span style="font-size: 14px; color: #495057;">Enable Audio</span>
-              <label class="toggle-switch" style="
-                position: relative;
-                display: inline-block;
-                width: 40px;
-                height: 20px;
-              ">
-                <input type="checkbox" id="audio-toggle" checked style="
-                  opacity: 0;
-                  width: 0;
-                  height: 0;
-                ">
-                <span class="toggle-slider" style="
-                  position: absolute;
-                  cursor: pointer;
-                  top: 0;
-                  left: 0;
-                  right: 0;
-                  bottom: 0;
-                  background-color: #ccc;
-                  transition: .4s;
-                  border-radius: 20px;
-                "></span>
-              </label>
+              Settings
             </div>
-            <button 
-              id="clear-history-btn"
-              style="
-                width: 100%;
-                padding: 8px;
-                border: none;
-                background: #dc3545;
-                color: white;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 13px;
-                transition: all 0.2s ease;
-              "
-              onmouseover="this.style.background='#c82333'" 
-              onmouseout="this.style.background='#dc3545'"
-            >
-              Clear History
-            </button>
+            <div style="
+              display: flex;
+              flex-direction: column;
+              gap: 16px;
+            ">
+              <div style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding-bottom: 16px;
+                border-bottom: 1px solid #e5e7eb;
+              ">
+                <span style="font-size: 14px; color: #374151; font-weight: 500;">Enable Audio</span>
+                <label class="toggle-switch" style="
+                  position: relative;
+                  display: inline-block;
+                  width: 46px;
+                  height: 24px;
+                  flex-shrink: 0;
+                ">
+                  <input type="checkbox" id="audio-toggle" checked style="
+                    opacity: 0;
+                    width: 0;
+                    height: 0;
+                  ">
+                  <span class="toggle-slider" style="
+                    position: absolute;
+                    cursor: pointer;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-color: #d1d5db;
+                    transition: .4s;
+                    border-radius: 24px;
+                  "></span>
+                </label>
+              </div>
+              <div style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding-bottom: 16px;
+                border-bottom: 1px solid #e5e7eb;
+              ">
+                <span style="font-size: 14px; color: #374151; font-weight: 500;">Clear History</span>
+                <button 
+                  id="clear-history-btn"
+                  style="
+                    padding: 6px 12px;
+                    border: none;
+                    background: #dc3545;
+                    color: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 13px;
+                    font-weight: 500;
+                    transition: all 0.2s ease;
+                  "
+                  onmouseover="this.style.background='#c82333'" 
+                  onmouseout="this.style.background='#dc3545'"
+                >
+                  Clear
+                </button>
+              </div>
+              <button 
+                id="close-settings-btn"
+                style="
+                  width: 100%;
+                  padding: 8px;
+                  border: 1px solid #e5e7eb;
+                  background: #f3f4f6;
+                  color: #374151;
+                  border-radius: 4px;
+                  cursor: pointer;
+                  font-size: 13px;
+                  font-weight: 500;
+                  transition: all 0.2s ease;
+                "
+                onmouseover="this.style.background='#e5e7eb'" 
+                onmouseout="this.style.background='#f3f4f6'"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
         <div id="chat-messages" style="${chatStyles.chatMessages}"></div>
@@ -310,21 +359,39 @@ export class KipAI {
     const toggleStyles = document.createElement('style');
     toggleStyles.textContent = `
       .toggle-switch input:checked + .toggle-slider {
-        background-color: #000000;
+        background-color: #10b981 !important;
+      }
+      .toggle-switch input:not(:checked) + .toggle-slider {
+        background-color: #4b5563 !important;
+      }
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        transition: all 0.3s ease !important;
+        border-radius: 24px !important;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
       }
       .toggle-slider:before {
         position: absolute;
         content: "";
-        height: 16px;
-        width: 16px;
+        height: 20px;
+        width: 20px;
         left: 2px;
         bottom: 2px;
         background-color: white;
-        transition: .4s;
+        transition: all 0.3s ease;
         border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
       }
       .toggle-switch input:checked + .toggle-slider:before {
-        transform: translateX(20px);
+        transform: translateX(22px);
+      }
+      .toggle-switch:hover .toggle-slider:before {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       }
     `;
     document.head.appendChild(toggleStyles);
@@ -365,6 +432,8 @@ export class KipAI {
     });
     this.chatElements.clearHistoryBtn.addEventListener('click', () => {
       this.clearDomainMessages();
+    });
+    document.getElementById('close-settings-btn').addEventListener('click', () => {
       this.toggleSettings();
     });
 
@@ -566,10 +635,13 @@ export class KipAI {
         if (this.chatElements?.messages) {
           this.renderMessages();
         }
+
+        this.updateClearHistoryButton();
       } catch (error) {
         console.error('Error loading messages from localStorage:', error);
         this.messages = [];
         this.chatHistory = [];
+        this.updateClearHistoryButton();
       }
     }
   }
@@ -584,9 +656,22 @@ export class KipAI {
         this.messages = [];
         this.chatHistory = [];
         this.renderMessages();
+        this.updateClearHistoryButton();
       } catch (error) {
         console.error('Error clearing messages from localStorage:', error);
       }
+    }
+  }
+
+  // Update the clear history button
+  updateClearHistoryButton() {
+    const clearButton = document.getElementById('clear-history-btn');
+    if (clearButton) {
+      const hasHistory = this.messages.length > 0 || this.chatHistory.length > 0;
+      clearButton.disabled = !hasHistory;
+      clearButton.style.opacity = hasHistory ? '1' : '0.5';
+      clearButton.style.cursor = hasHistory ? 'pointer' : 'not-allowed';
+      clearButton.style.background = hasHistory ? '#dc3545' : '#e9ecef';
     }
   }
 
@@ -700,6 +785,7 @@ export class KipAI {
 
     this.chatElements.messages.scrollTop = this.chatElements.messages.scrollHeight;
     this.saveMessages();
+    this.updateClearHistoryButton();
   }
 
   // Add a message to the chat
@@ -982,7 +1068,22 @@ export class KipAI {
   // Toggle settings menu
   toggleSettings() {
     this.isSettingsOpen = !this.isSettingsOpen;
-    this.chatElements.settingsMenu.style.display = this.isSettingsOpen ? 'block' : 'none';
+    const menu = this.chatElements.settingsMenu;
+
+    if (this.isSettingsOpen) {
+      menu.style.display = 'block';
+      // Trigger reflow
+      menu.offsetHeight;
+      menu.style.opacity = '1';
+      menu.style.top = '50px';
+    } else {
+      menu.style.opacity = '0';
+      menu.style.top = '-200px';
+      // Wait for animation to complete before hiding
+      setTimeout(() => {
+        menu.style.display = 'none';
+      }, 300);
+    }
   }
 
   // Save settings to localStorage
